@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family Vault v2.0 Final</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-main: #020617; --bg-grad-top: #0f172a; --text-primary: #f8fafc; --text-secondary: #94a3b8;
+            --panel-bg: rgba(255, 255, 255, 0.02); --panel-border: rgba(255, 255, 255, 0.05);
+            --card-bg: rgba(255, 255, 255, 0.03); --card-hover: rgba(255, 255, 255, 0.06);
+            --input-bg: rgba(15, 23, 42, 0.8); --modal-bg: #0f172a;
+            --shadow-color: rgba(0, 0, 0, 0.6); --accent-blue: #38bdf8;
+            --skeleton-base: #1e293b; --skeleton-shine: #334155; --badge-bg: rgba(0,0,0,0.4);
+            --star-color: #fbbf24;
+        }
+
+        body.light-mode {
+            --bg-main: #f1f5f9; --bg-grad-top: #e2e8f0; --text-primary: #0f172a; --text-secondary: #475569;
+            --panel-bg: rgba(255, 255, 255, 0.8); --panel-border: rgba(0, 0, 0, 0.05);
+            --card-bg: rgba(255, 255, 255, 1); --card-hover: rgba(248, 250, 252, 1);
+            --input-bg: rgba(255, 255, 255, 0.9); --modal-bg: #ffffff;
+            --shadow-color: rgba(148, 163, 184, 0.3); --accent-blue: #0284c7;
+            --skeleton-base: #cbd5e1; --skeleton-shine: #e2e8f0; --badge-bg: rgba(226, 232, 240, 0.8);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: radial-gradient(circle at top, var(--bg-grad-top), var(--bg-main)); color: var(--text-primary); min-height: 100vh; overflow-x: hidden; display: flex; flex-direction: column; align-items: center; transition: 0.4s ease; }
+        ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-thumb { background: var(--accent-blue); border-radius: 10px; }
+
+        .top-controls { position: absolute; top: 20px; right: 20px; z-index: 100; display: flex; gap: 15px; }
+        .icon-btn { background: var(--panel-bg); border: 1px solid var(--panel-border); color: var(--accent-blue); width: 45px; height: 45px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 1.2rem; cursor: pointer; backdrop-filter: blur(10px); transition: 0.3s; box-shadow: 0 4px 10px var(--shadow-color); }
+        .icon-btn:hover { transform: scale(1.1); }
+
+        .glass-panel { background: var(--panel-bg); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid var(--panel-border); border-radius: 24px; box-shadow: 0 25px 50px -12px var(--shadow-color); padding: 2.5rem; width: 92%; max-width: 1000px; margin-top: 5rem; margin-bottom: 4rem; display: none; z-index: 10; }
+        .active-view { display: block; animation: slideUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        @keyframes slideUp { 0% { opacity: 0; transform: translateY(30px); } 100% { opacity: 1; transform: translateY(0); } }
+
+        h1, h2, h3 { font-weight: 700; margin-bottom: 1.5rem; text-align: center; }
+        h2 { font-size: 1.8rem; background: linear-gradient(135deg, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        .input-group { position: relative; width: 100%; margin-bottom: 1rem; }
+        .input-group i { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-size: 1.1rem; }
+        input[type="text"], input[type="password"], input[type="number"] { width: 100%; padding: 16px 16px 16px 50px; background: var(--input-bg); border: 1px solid var(--panel-border); color: var(--text-primary); border-radius: 14px; outline: none; font-size: 1rem; transition: 0.3s ease; }
+        input:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.15); }
+        input.no-icon { padding-left: 16px; }
+
+        .btn { background: linear-gradient(135deg, #2563eb, #0ea5e9); border: none; color: #fff; padding: 14px 24px; border-radius: 14px; cursor: pointer; font-weight: 600; font-size: 1rem; transition: 0.3s ease; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 8px 20px -5px rgba(37, 99, 235, 0.5); white-space: nowrap; width: 100%; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 12px 25px -5px rgba(37, 99, 235, 0.6); }
+        .btn-outline { background: transparent; border: 1px solid var(--panel-border); box-shadow: none; color: var(--text-primary); width: auto; padding: 12px 20px; transition: 0.3s; }
+        .btn-outline:hover { background: rgba(255, 255, 255, 0.05); border-color: var(--accent-blue); color: var(--accent-blue); }
+        .btn-danger { background: linear-gradient(135deg, #dc2626, #ef4444); box-shadow: 0 8px 20px -5px rgba(220, 38, 38, 0.4); color: white; border: none; }
+        .btn-success { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 8px 20px -5px rgba(16, 185, 129, 0.4); color: white; border: none; }
+
+        .file-upload-wrapper { position: relative; overflow: hidden; display: inline-block; width: 100%; max-width: 350px; margin: 15px 0; border-radius: 50px; }
+        .file-upload-wrapper input[type="file"] { font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; height: 100%; width: 100%; }
+        .file-upload-wrapper .btn { border-radius: 50px; padding: 18px; pointer-events: none; width: 100%; }
+
+        .flex-row { display: flex; gap: 15px; align-items: center; justify-content: space-between; }
+        .view-toggle { display: flex; background: var(--input-bg); border: 1px solid var(--panel-border); border-radius: 12px; overflow: hidden; flex-shrink: 0; padding: 4px; }
+        .view-toggle button { background: transparent; border: none; color: var(--text-secondary); padding: 8px 16px; cursor: pointer; transition: 0.3s; font-size: 1.1rem; border-radius: 8px; }
+        .view-toggle button.active { background: var(--accent-blue); color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+
+        .documents-layout { display: grid; gap: 20px; transition: 0.3s ease; width: 100%; margin-top: 20px; }
+        .documents-layout.grid-view { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+        .documents-layout.grid-view .card { flex-direction: column; text-align: center; height: 210px; justify-content: center; padding: 20px; }
+        .documents-layout.grid-view .doc-info { margin-top: 10px; width: 100%; display: flex; flex-direction: column; align-items: center; }
+        .documents-layout.list-view { grid-template-columns: 1fr; }
+        .documents-layout.list-view .card { flex-direction: row; text-align: left; height: auto; padding: 15px 20px; justify-content: flex-start; align-items: center; }
+        .documents-layout.list-view .doc-preview { width: 55px; height: 55px; margin-bottom: 0; margin-right: 18px; flex-shrink: 0; }
+        .documents-layout.list-view .doc-info { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; }
+        .documents-layout.list-view .card-actions { position: relative; top: 0; right: 0; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+        .documents-layout.list-view .doc-title { white-space: nowrap; text-overflow: ellipsis; max-width: 100%; display: block; }
+
+        .card { background: var(--card-bg); border: 1px solid var(--panel-border); border-radius: 20px; cursor: pointer; transition: 0.3s ease; display: flex; position: relative; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .card:hover { background: var(--card-hover); transform: translateY(-4px); border-color: rgba(56, 189, 248, 0.4); box-shadow: 0 15px 30px -10px var(--shadow-color); }
+        .doc-preview { width: 70px; height: 70px; object-fit: cover; border-radius: 50%; margin-bottom: 12px; border: 2px solid var(--panel-border); background: #fff;}
+        .member-card .doc-preview { width: 80px; height: 80px; }
+        .doc-card .doc-preview { border-radius: 14px; }
+        .doc-title { font-size: 14px; font-weight: 600; color: var(--text-primary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; word-break: break-all; }
+        .doc-size { font-size: 11px; color: var(--text-secondary); margin-top: 6px; background: var(--badge-bg); padding: 4px 10px; border-radius: 12px; font-weight: 500;}
+
+        .card-actions { position: absolute; top: 12px; right: 12px; display: flex; gap: 8px; opacity: 0; transition: 0.3s; z-index: 2; }
+        .card:hover .card-actions { opacity: 1; }
+        .documents-layout.list-view .card .card-actions { opacity: 1; position: relative; top: 0; right: 0; }
+        
+        .action-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; border: 1px solid transparent; backdrop-filter: blur(4px); flex-shrink: 0; }
+        .action-del { background: rgba(220, 38, 38, 0.1); color: #ef4444; border-color: rgba(220, 38, 38, 0.2); }
+        .action-del:hover { background: #ef4444; color: #fff; transform: scale(1.1); }
+        .action-star { background: rgba(255, 255, 255, 0.05); color: var(--text-secondary); border-color: var(--panel-border); }
+        .action-star:hover { background: rgba(255, 255, 255, 0.1); transform: scale(1.1); }
+        .action-star.active { color: var(--star-color); text-shadow: 0 0 10px var(--star-color); }
+        .action-edit { background: rgba(56, 189, 248, 0.1); color: var(--accent-blue); border-color: rgba(56, 189, 248, 0.2); }
+        .action-edit:hover { background: var(--accent-blue); color: #fff; transform: scale(1.1); }
+
+        .skeleton { background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-shine) 50%, var(--skeleton-base) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 12px; }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+        .storage-meter { background: var(--card-bg); border: 1px solid var(--panel-border); border-radius: 14px; padding: 15px; margin-bottom: 25px; }
+        .meter-bar { width: 100%; height: 6px; background: var(--skeleton-base); border-radius: 10px; overflow: hidden; margin-top: 8px; }
+        .meter-fill { height: 100%; background: linear-gradient(90deg, #10b981, #38bdf8); width: 0%; border-radius: 10px; transition: 0.5s ease; }
+        .storage-warning .meter-fill { background: linear-gradient(90deg, #f59e0b, #ef4444); }
+        
+        #pre-upload-box, .upload-status-box { background: var(--card-bg); border: 1px solid var(--accent-blue); border-radius: 16px; padding: 20px; margin: 15px 0; display: none; animation: slideUp 0.3s; }
+        .upload-status-box { border-color: var(--panel-border); }
+        .progress-header { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px; color: var(--text-secondary); font-weight: 500;}
+        .progress-bar-bg { width: 100%; height: 8px; background: var(--skeleton-base); border-radius: 10px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #38bdf8, #818cf8); width: 0%; border-radius: 10px; transition: width 0.3s ease; box-shadow: 0 0 10px rgba(56, 189, 248, 0.6); }
+
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 1000; opacity: 0; transition: 0.3s ease; padding: 15px; }
+        .modal.show { display: flex; opacity: 1; }
+        .modal-content { background: var(--modal-bg); border: 1px solid var(--panel-border); border-radius: 24px; padding: 30px; text-align: center; width: 100%; max-width: 550px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0,0,0,0.5); position: relative; transform: scale(0.95); transition: 0.3s ease; }
+        .modal.show .modal-content { transform: scale(1); }
+        .close-btn { position: absolute; top: 20px; right: 20px; color: var(--text-secondary); font-size: 18px; cursor: pointer; transition: 0.3s; background: var(--card-bg); border: 1px solid var(--panel-border); width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 5; }
+        .close-btn:hover { color: #fff; background: #ef4444; border-color: #ef4444; }
+
+        .modal-content img { max-width: 100%; max-height: 35vh; border-radius: 12px; margin-bottom: 20px; display: none; object-fit: contain; }
+        .modal-content iframe { width: 100%; height: 45vh; border-radius: 12px; margin-bottom: 20px; border: 1px solid var(--panel-border); display: none; background: #fff; }
+
+        .history-item { display: flex; gap: 15px; text-align: left; padding: 15px 0; border-bottom: 1px solid var(--panel-border); }
+        .history-item:last-child { border-bottom: none; }
+        .hist-icon { width: 42px; height: 42px; border-radius: 50%; background: rgba(56, 189, 248, 0.1); color: var(--accent-blue); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
+        .hist-title { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
+        
+        #confirm-modal .modal-content, #prompt-modal .modal-content, #profile-modal .modal-content { padding: 40px 30px; max-width: 420px; }
+
+        #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; align-items: center; width: 90%; max-width: 400px; }
+        .toast { background: var(--modal-bg); border-left: 4px solid var(--accent-blue); color: var(--text-primary); padding: 14px 20px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 12px; font-weight: 500; font-size: 14px; animation: slideDown 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; border: 1px solid var(--panel-border); pointer-events: auto; width: 100%; }
+        .toast.error { border-left-color: #ef4444; } .toast.warning { border-left-color: #f59e0b; }
+        @keyframes slideDown { from { transform: translateY(-150%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes fadeOut { to { opacity: 0; transform: scale(0.9); } }
+
+        @media (max-width: 600px) {
+            .glass-panel { padding: 1.5rem; width: 95%; margin-top: 5rem; border-radius: 20px; }
+            .flex-row { flex-direction: column; align-items: stretch; gap: 12px; }
+            .flex-row .btn { width: 100%; }
+            #header-flex { flex-direction: row; align-items: center; justify-content: space-between; display: flex; gap: 10px; margin-bottom: 20px;}
+            #header-flex h2 { font-size: 1.2rem; margin: 0; flex: 1; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            .modal-content { padding: 25px 20px; border-radius: 20px; }
+            .modal-actions { flex-wrap: wrap; } .modal-actions .btn { font-size: 0.95rem; padding: 14px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-controls">
+        <div class="icon-btn" onclick="toggleTheme()" id="theme-btn"><i class="fa-solid fa-moon"></i></div>
+    </div>
+    <div id="toast-container"></div>
+    <div style="position: fixed; bottom: 15px; right: 15px; color: var(--text-secondary); font-size: 12px; font-weight: 600; z-index: 5;">v2.0 Final</div>
+
+    <!-- 1. Login View -->
+    <div id="login-view" class="glass-panel active-view" style="max-width: 420px; padding: 3rem 2.5rem;">
+        <h2><i class="fa-solid fa-shield-halved" style="color: var(--accent-blue);"></i> Vault Access</h2>
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 30px; font-size: 14px;">Secured with Auto-Lock & Firebase</p>
+        <div class="input-group">
+            <i class="fa-solid fa-key"></i>
+            <input type="password" id="access-key" placeholder="Enter Key or Phone Number">
+        </div>
+        <button class="btn" id="btn-login" onclick="checkAccess()">
+            <span>Unlock Vault</span> <i class="fa-solid fa-arrow-right-to-bracket"></i>
+        </button>
+    </div>
+
+    <!-- 2. Dashboard View -->
+    <div id="dashboard-view" class="glass-panel">
+        
+        <div class="storage-meter" id="storage-container">
+            <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600;">
+                <span style="color: var(--text-secondary);"><i class="fa-solid fa-hard-drive"></i> Vault Storage (1GB Max)</span>
+                <span id="storage-text" style="color: var(--accent-blue);">Loading...</span>
+            </div>
+            <div class="meter-bar"><div class="meter-fill" id="storage-fill"></div></div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+            <h2 style="margin: 0;"><i class="fa-solid fa-users"></i> Profiles</h2>
+            <button class="btn-outline" style="border-radius: 50px; font-size: 13px; font-weight: 600;" onclick="openHistory()"><i class="fa-solid fa-clock-rotate-left"></i> History</button>
+        </div>
+        
+        <div class="flex-row" style="margin-bottom: 30px;">
+            <div class="input-group" style="margin-bottom: 0; flex: 1;">
+                <i class="fa-solid fa-user-plus"></i>
+                <input type="text" id="new-member-name" placeholder="Enter Member Name" style="margin-bottom: 0;">
+            </div>
+            <button class="btn" style="width: auto;" onclick="addMember()">Add Profile</button>
+        </div>
+        
+        <div class="documents-layout grid-view" id="members-list"></div>
+    </div>
+
+    <!-- 3. Documents View -->
+    <div id="documents-view" class="glass-panel">
+        
+        <div id="header-flex">
+            <button class="btn-outline" style="border-radius: 12px; padding: 10px 15px;" onclick="showDashboard()"><i class="fa-solid fa-arrow-left"></i> Back</button>
+            <h2 id="current-member-name"><i class="fa-solid fa-folder-open"></i> Docs</h2>
+            <div class="view-toggle">
+                <button id="btn-grid" class="active" onclick="setView('grid')"><i class="fa-solid fa-grip"></i></button>
+                <button id="btn-list" onclick="setView('list')"><i class="fa-solid fa-list-ul"></i></button>
+            </div>
+        </div>
+        
+        <div class="input-group" style="margin-bottom: 20px;">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="search-doc" placeholder="Search documents instantly..." oninput="searchDocs(this.value)" style="border-radius: 50px; padding-left: 45px;">
+        </div>
+        
+        <div style="text-align: center;">
+            <div class="file-upload-wrapper">
+                <button class="btn"><i class="fa-solid fa-cloud-arrow-up"></i> Select New Document</button>
+                <input type="file" id="file-input" accept="image/*,application/pdf" onchange="handleFileSelect(event)">
+            </div>
+        </div>
+
+        <div id="pre-upload-box">
+            <p style="color: var(--accent-blue); font-size: 14px; font-weight: 600; margin-bottom: 12px; text-align: left;"><i class="fa-solid fa-pen-to-square"></i> Set Document Name:</p>
+            <div class="flex-row">
+                <input type="text" id="upload-custom-name" class="no-icon" placeholder="Enter File Name" style="margin-bottom: 0;">
+                <button class="btn btn-outline" style="width: auto; padding: 16px 20px; border-color: #ef4444; color: #ef4444;" onclick="cancelUpload()"><i class="fa-solid fa-xmark"></i></button>
+                <button class="btn btn-success" style="width: auto; padding: 16px 25px;" onclick="startUploadProcess()">Upload <i class="fa-solid fa-check"></i></button>
+            </div>
+        </div>
+        
+        <div class="upload-status-box" id="upload-status">
+            <div class="progress-header">
+                <span id="progress-text"><i class="fa-solid fa-spinner fa-spin"></i> Reading File...</span>
+                <span id="progress-size">0 MB</span>
+            </div>
+            <div class="progress-bar-bg"><div class="progress-fill" id="progress-fill"></div></div>
+        </div>
+
+        <div class="documents-layout grid-view" id="documents-list"></div>
+    </div>
+
+    <!-- 4. Document Viewer Modal -->
+    <div class="modal" id="doc-modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></span>
+            
+            <!-- FIXED UI ALIGNMENT: Rename button moved next to the title text, padding added to prevent close button overlap -->
+            <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; padding-right: 45px;">
+                <h3 id="modal-doc-title" style="margin: 0; word-break: break-all; text-align: left;">Title</h3>
+                <button class="action-icon action-edit" style="flex-shrink: 0; width: 32px; height: 32px;" onclick="renameCurrentDoc()" title="Rename File"><i class="fa-solid fa-pen"></i></button>
+            </div>
+            
+            <p id="modal-doc-info" style="color: var(--text-secondary); font-size: 13px; margin-bottom: 20px; text-align: left;"></p>
+            
+            <img id="modal-doc-img" src="" alt="Preview">
+            <iframe id="modal-doc-pdf" src=""></iframe>
+            
+            <div style="margin-bottom: 15px; text-align: left;">
+                <label style="color: var(--text-secondary); font-size: 12px; margin-bottom: 6px; display: block; font-weight: 600;">Download File Name:</label>
+                <input type="text" id="download-name" class="no-icon" style="padding: 14px; border-radius: 12px; margin-bottom: 0;">
+            </div>
+
+            <div class="modal-actions" style="display: flex; gap: 10px; justify-content: center; margin-bottom: 25px;">
+                <button class="btn" style="flex: 1;" id="btn-normal-download"><i class="fa-solid fa-download"></i> Save</button>
+                <button class="btn" style="flex: 1; background: linear-gradient(135deg, #8b5cf6, #6366f1); box-shadow: 0 8px 20px -5px rgba(139,92,246,0.4);" onclick="shareDocument()"><i class="fa-solid fa-share-nodes"></i> Share</button>
+                <button class="btn btn-danger" style="width: auto; padding: 15px;" id="btn-delete-doc"><i class="fa-solid fa-trash-can"></i></button>
+            </div>
+            
+            <div id="resize-section" style="border-top: 1px solid var(--panel-border); padding-top: 20px; display: none;">
+                <p style="color: var(--text-secondary); margin-bottom: 12px; font-size: 13px; text-align: left; font-weight: 600;"><i class="fa-solid fa-compress"></i> Resize Options (Images Only)</p>
+                <div class="flex-row" style="gap: 10px; margin-bottom: 15px;">
+                    <input type="number" id="resize-w" class="no-icon" placeholder="Width" style="margin-bottom:0; flex:1; padding: 14px;">
+                    <input type="number" id="resize-h" class="no-icon" placeholder="Height" style="margin-bottom:0; flex:1; padding: 14px;">
+                    <input type="number" id="resize-kb" class="no-icon" placeholder="Max KB" style="margin-bottom:0; flex:1; padding: 14px; border-color: #8b5cf6;">
+                </div>
+                <button class="btn btn-outline" onclick="customResizeDownload()" style="width: 100%; border-radius: 12px; border-color: var(--panel-border);"><i class="fa-solid fa-down-left-and-up-right-to-center"></i> Resize & Download</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. Activity History Modal -->
+    <div class="modal" id="history-modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <span class="close-btn" onclick="document.getElementById('history-modal').classList.remove('show')"><i class="fa-solid fa-xmark"></i></span>
+            <h3 style="text-align: left; margin-bottom: 20px;"><i class="fa-solid fa-clock-rotate-left" style="color: var(--accent-blue);"></i> Audit History <br><span style="font-size:12px; color:var(--text-secondary); font-weight:500;">(Auto-cleans logs older than 15 days)</span></h3>
+            <div id="history-list" style="max-height: 55vh; overflow-y: auto; padding-right: 10px;"></div>
+        </div>
+    </div>
+
+    <!-- 6. Profile Image Edit Modal -->
+    <div class="modal" id="profile-modal" style="z-index: 2000;">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeProfileModal()"><i class="fa-solid fa-xmark"></i></span>
+            <h3 style="margin-bottom: 20px;">Edit Profile Image</h3>
+            <div class="file-upload-wrapper" style="margin: 0 0 20px 0;">
+                <button class="btn"><i class="fa-solid fa-camera"></i> Choose Photo</button>
+                <input type="file" accept="image/*" onchange="uploadProfilePhoto(event)">
+            </div>
+            <button class="btn btn-outline" style="width: 100%; color: #ef4444; border-color: rgba(239, 68, 68, 0.4);" onclick="removeProfilePhoto()"><i class="fa-solid fa-trash"></i> Remove Photo</button>
+        </div>
+    </div>
+
+    <!-- 7. Prompt Input Modal (For Rename) -->
+    <div class="modal" id="prompt-modal" style="z-index: 2000;">
+        <div class="modal-content">
+            <h3 id="prompt-title" style="margin-bottom: 15px; text-align: left;">Rename</h3>
+            <input type="text" id="prompt-input" class="no-icon" style="margin-bottom: 20px;">
+            <div class="flex-row">
+                <button class="btn btn-outline" style="flex: 1;" onclick="closePromptModal()">Cancel</button>
+                <button class="btn btn-success" style="flex: 1;" id="prompt-save-btn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 8. Custom Confirm Modal -->
+    <div class="modal" id="confirm-modal" style="z-index: 2000;">
+        <div class="modal-content">
+            <div style="font-size: 3.5rem; color: #ef4444; margin-bottom: 15px;"><i class="fa-solid fa-circle-exclamation"></i></div>
+            <h3 id="confirm-title" style="margin-bottom: 12px; font-size: 1.4rem;">Are you sure?</h3>
+            <p id="confirm-message" style="color: var(--text-secondary); font-size: 14px; margin-bottom: 30px;"></p>
+            <div class="flex-row">
+                <button class="btn btn-outline" style="flex: 1;" onclick="closeConfirmModal()">Cancel</button>
+                <button class="btn btn-danger" style="flex: 1;" id="confirm-yes-btn">Yes, Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, get, child, push, set, update, onValue, remove, query, limitToLast } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAG87kxJWSsOWvx_nFEBdSbYIgJKgGDJ6Q",
+            authDomain: "ludofree-67c14.firebaseapp.com",
+            databaseURL: "https://ludofree-67c14-default-rtdb.firebaseio.com",
+            projectId: "ludofree-67c14",
+            messagingSenderId: "400295435194",
+            appId: "1:400295435194:web:d625640d2fdbec69af1b83"
+        };
+        const app = initializeApp(firebaseConfig); const db = getDatabase(app);
+        
+        let activeUserName = "Unknown"; 
+        let currentMemberId = null, currentDocData = null, currentDocName = null, currentDocType = null, currentDocId = null, currentMemberName = null;
+        let pendingFile = null, customConfirmCallback = null, promptCallback = null, editingProfileId = null;
+        let isUploading = false; 
+
+        // Auto-Lock Feature
+        let inactivityTime = () => {
+            let time;
+            window.onload = resetTimer; document.onmousemove = resetTimer; document.onkeydown = resetTimer; document.ontouchstart = resetTimer;
+            function lockVault() {
+                if(!isUploading && !document.getElementById("login-view").classList.contains("active-view")){
+                    showToast("Vault auto-locked due to inactivity.", "warning");
+                    document.querySelectorAll('.glass-panel').forEach(p=>p.classList.remove('active-view'));
+                    document.querySelectorAll('.modal').forEach(m=>m.classList.remove('show'));
+                    document.getElementById('login-view').classList.add('active-view');
+                    document.getElementById('access-key').value = ""; activeUserName = "Unknown";
+                }
+            }
+            function resetTimer() { clearTimeout(time); time = setTimeout(lockVault, 300000); }
+        };
+        inactivityTime();
+
+        if (localStorage.getItem('vaultTheme') === 'light') { document.body.classList.add('light-mode'); document.getElementById('theme-btn').innerHTML = '<i class="fa-solid fa-sun"></i>'; }
+        window.toggleTheme = () => {
+            const isLight = document.body.classList.toggle('light-mode'); localStorage.setItem('vaultTheme', isLight ? 'light' : 'dark');
+            document.getElementById('theme-btn').innerHTML = isLight ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
+        };
+
+        let currentView = localStorage.getItem('vaultView') || 'grid';
+        window.setView = (v) => {
+            currentView = v; localStorage.setItem('vaultView', v);
+            const list = document.getElementById("documents-list");
+            if(v === 'list') { list.classList.replace('grid-view', 'list-view'); document.getElementById("btn-list").classList.add("active"); document.getElementById("btn-grid").classList.remove("active"); } 
+            else { list.classList.replace('list-view', 'grid-view'); document.getElementById("btn-grid").classList.add("active"); document.getElementById("btn-list").classList.remove("active"); }
+        }; setView(currentView);
+
+        function formatBytes(bytes) {
+            if (!+bytes) return '0 B'; const k = 1024; const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k)); return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+        }
+
+        window.showToast = (msg, type = "success") => {
+            const container = document.getElementById("toast-container"); const toast = document.createElement("div"); toast.className = `toast ${type}`;
+            const icon = type === "success" ? '<i class="fa-solid fa-check-circle" style="color:#10b981;"></i>' : type === "warning" ? '<i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b;"></i>' : '<i class="fa-solid fa-circle-exclamation" style="color:#ef4444;"></i>';
+            toast.innerHTML = `${icon} <span style="flex:1;">${msg}</span>`; container.appendChild(toast);
+            setTimeout(() => { toast.style.animation = "fadeOut 0.3s forwards"; setTimeout(() => toast.remove(), 300); }, 3000);
+        };
+
+        window.openCustomConfirm = (t, m, cb) => { document.getElementById("confirm-title").innerText = t; document.getElementById("confirm-message").innerText = m; customConfirmCallback = cb; document.getElementById("confirm-modal").classList.add("show"); };
+        window.closeConfirmModal = () => { document.getElementById("confirm-modal").classList.remove("show"); customConfirmCallback = null; };
+        document.getElementById("confirm-yes-btn").onclick = () => { if(customConfirmCallback) customConfirmCallback(); closeConfirmModal(); };
+
+        window.openPrompt = (title, defVal, cb) => { document.getElementById("prompt-title").innerText = title; document.getElementById("prompt-input").value = defVal; promptCallback = cb; document.getElementById("prompt-modal").classList.add("show"); document.getElementById("prompt-input").focus(); };
+        window.closePromptModal = () => { document.getElementById("prompt-modal").classList.remove("show"); promptCallback = null; };
+        document.getElementById("prompt-save-btn").onclick = () => { if(promptCallback) promptCallback(document.getElementById("prompt-input").value.trim()); closePromptModal(); };
+
+        // Storage Tracker
+        function updateGlobalStorage() {
+            get(ref(db, 'vault_stats/totalStorage')).then((snap) => {
+                let total = snap.val() || 0; const limit = 1073741824; 
+                const pct = Math.min((total / limit) * 100, 100).toFixed(1);
+                document.getElementById('storage-fill').style.width = pct + '%';
+                document.getElementById('storage-text').innerText = `${formatBytes(total)} Used`;
+                if(pct > 90) document.getElementById('storage-container').classList.add('storage-warning');
+            });
+        }
+        function adjustStorage(bytesChange) {
+            get(ref(db, 'vault_stats/totalStorage')).then((snap) => {
+                let current = snap.val() || 0; set(ref(db, 'vault_stats/totalStorage'), Math.max(0, current + bytesChange));
+            });
+        }
+
+        window.checkAccess = () => {
+            const key = document.getElementById("access-key").value.trim(); if(key === "") return showToast("Please enter key", "warning");
+            const btn = document.getElementById("btn-login"); btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking...';
+            get(child(ref(db), `Vault_Access_Keys/${key}`)).then((snapshot) => {
+                if (snapshot.exists()) {
+                    activeUserName = snapshot.val();
+                    document.getElementById("login-view").classList.remove("active-view"); document.getElementById("dashboard-view").classList.add("active-view");
+                    showToast(`Welcome, ${activeUserName}!`); logActivity("Login", `Unlocked the vault.`); loadMembers(); updateGlobalStorage();
+                } else { showToast("Invalid Key", "error"); btn.innerHTML = '<span>Unlock Vault</span> <i class="fa-solid fa-arrow-right-to-bracket"></i>'; }
+            }).catch(() => { showToast("Database Error", "error"); btn.innerHTML = '<span>Unlock Vault</span> <i class="fa-solid fa-arrow-right-to-bracket"></i>'; });
+        };
+
+        function logActivity(action, details) { push(ref(db, 'Vault_History'), { user: activeUserName, action: action, details: details, time: Date.now() }); }
+        window.openHistory = () => {
+            document.getElementById('history-modal').classList.add('show');
+            const list = document.getElementById('history-list'); list.innerHTML = `<p style="text-align:center; color:var(--text-secondary); margin-top:20px;"><i class="fa-solid fa-spinner fa-spin"></i> Loading logs...</p>`;
+            
+            get(query(ref(db, 'Vault_History'), limitToLast(100))).then((snapshot) => {
+                list.innerHTML = ""; if(!snapshot.exists()) { list.innerHTML = `<p style="text-align:center; margin-top:20px;">No activity yet.</p>`; return; }
+                const cutoff = Date.now() - (15 * 24 * 60 * 60 * 1000); 
+                let logs = []; 
+                snapshot.forEach(child => { 
+                    const log = child.val();
+                    if(log.time < cutoff) remove(ref(db, `Vault_History/${child.key}`)); 
+                    else logs.push(log); 
+                });
+                logs.reverse();
+                logs.forEach(log => {
+                    let icon = "fa-clock"; if(log.action === "Login") icon = "fa-right-to-bracket"; if(log.action === "Upload") icon = "fa-cloud-arrow-up"; if(log.action === "Delete") icon = "fa-trash"; if(log.action === "Download") icon = "fa-download"; if(log.action === "Rename") icon = "fa-pen";
+                    let timeStr = new Date(log.time).toLocaleDateString() + " " + new Date(log.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                    list.innerHTML += `<div class="history-item"><div class="hist-icon"><i class="fa-solid ${icon}"></i></div><div style="flex:1;"><div class="hist-title">${log.user} • <span style="color:var(--text-secondary); font-weight:500;">${log.action}</span></div><div style="font-size:13px; color:var(--text-primary); margin-bottom:4px;">${log.details}</div><div class="hist-time">${timeStr}</div></div></div>`;
+                });
+            });
+        };
+
+        window.addMember = () => {
+            const nameInput = document.getElementById("new-member-name"); if(nameInput.value.trim() === "") return showToast("Enter profile name", "error");
+            push(ref(db, 'members'), { name: nameInput.value.trim(), avatar: "" }).then(() => { logActivity("Profile Created", `Created ${nameInput.value.trim()}`); showToast(`Profile created`); nameInput.value = ""; });
+        };
+        function loadMembers() {
+            onValue(ref(db, 'members'), (snapshot) => {
+                const list = document.getElementById("members-list"); list.innerHTML = "";
+                snapshot.forEach((child) => {
+                    const data = child.val(); const id = child.key;
+                    const card = document.createElement("div"); card.className = "card member-card";
+                    const avatarHtml = data.avatar ? `<img src="${data.avatar}" class="doc-preview" style="border-radius:50%;">` : `<i class="fa-solid fa-circle-user" style="font-size: 3.5rem; color: var(--accent-blue); margin-bottom: 15px;"></i>`;
+                    card.innerHTML = `
+                        <div class="card-actions" style="opacity: 1; top: 8px; right: 8px;">
+                            <div class="action-icon action-edit" onclick="event.stopPropagation(); openProfileModal('${id}')"><i class="fa-solid fa-gear" style="font-size:12px;"></i></div>
+                            <div class="action-icon action-del" onclick="event.stopPropagation(); deleteMember('${id}', '${data.name}')"><i class="fa-solid fa-trash" style="font-size:12px;"></i></div>
+                        </div>
+                        ${avatarHtml}
+                        <h3 style="margin:0; font-size:15px; color: var(--text-primary);">${data.name}</h3>
+                    `;
+                    card.onclick = () => openMemberDocs(id, data.name);
+                    list.appendChild(card);
+                });
+            });
+        }
+        window.deleteMember = (id, name) => { openCustomConfirm("Delete Profile", `Delete ${name} and ALL documents?`, () => { remove(ref(db, `members/${id}`)); remove(ref(db, `documents/${id}`)); logActivity("Delete", `Deleted member: ${name}`); showToast(`Profile deleted`); }); };
+
+        window.openProfileModal = (id) => { editingProfileId = id; document.getElementById("profile-modal").classList.add("show"); };
+        window.closeProfileModal = () => { document.getElementById("profile-modal").classList.remove("show"); editingProfileId = null; };
+        window.uploadProfilePhoto = (e) => {
+            const file = e.target.files[0]; if(!file || !editingProfileId) return;
+            const reader = new FileReader(); reader.readAsDataURL(file);
+            reader.onload = (evt) => {
+                const img = new Image(); img.src = evt.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas'); canvas.width = 150; canvas.height = 150;
+                    canvas.getContext('2d').drawImage(img, 0, 0, 150, 150);
+                    update(ref(db, `members/${editingProfileId}`), { avatar: canvas.toDataURL('image/jpeg', 0.8) });
+                    showToast("Profile Photo Updated!"); closeProfileModal();
+                }
+            };
+        };
+        window.removeProfilePhoto = () => { if(editingProfileId) { update(ref(db, `members/${editingProfileId}`), { avatar: "" }); showToast("Photo Removed"); closeProfileModal(); } };
+
+        window.showDashboard = () => { document.getElementById("documents-view").classList.remove("active-view"); document.getElementById("dashboard-view").classList.add("active-view"); updateGlobalStorage(); };
+
+        window.searchDocs = (val) => {
+            const term = val.toLowerCase(); const cards = document.querySelectorAll('#documents-list .card');
+            cards.forEach(c => { const title = c.querySelector('.doc-title').innerText.toLowerCase(); c.style.display = title.includes(term) ? "flex" : "none"; });
+        };
+
+        window.openMemberDocs = (id, name) => {
+            currentMemberId = id; currentMemberName = name; document.getElementById("current-member-name").innerHTML = `<i class="fa-regular fa-folder-open"></i> ${name}`;
+            document.getElementById("dashboard-view").classList.remove("active-view"); document.getElementById("documents-view").classList.add("active-view");
+            document.getElementById("pre-upload-box").style.display = "none"; document.getElementById("search-doc").value = "";
+            const list = document.getElementById("documents-list"); list.innerHTML = ""; const isList = currentView === 'list';
+            for(let i=0; i<3; i++) {
+                if(isList) list.innerHTML += `<div class="card doc-card" style="flex-direction:row; height:auto; padding:15px 20px;"><div class="skeleton doc-preview" style="width:55px; height:55px; margin-right:18px;"></div><div style="flex:1;"><div class="skeleton" style="width:60%; height:12px; margin-bottom:10px;"></div><div class="skeleton" style="width:30%; height:10px;"></div></div></div>`;
+                else list.innerHTML += `<div class="card doc-card" style="height:210px; justify-content:center;"><div class="skeleton doc-preview" style="width:70px; height:70px; margin-bottom:15px;"></div><div class="skeleton" style="width:70%; height:12px; margin-bottom:10px;"></div><div class="skeleton" style="width:40%; height:10px;"></div></div>`;
+            }
+            setTimeout(() => { loadDocuments(); }, 600);
+        };
+
+        function loadDocuments() {
+            onValue(ref(db, `documents/${currentMemberId}`), (snapshot) => {
+                const list = document.getElementById("documents-list"); list.innerHTML = "";
+                if (!snapshot.exists()) { list.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-secondary); padding: 30px;">No documents found.</p>`; return; }
+                
+                let docsArray = []; snapshot.forEach(child => { docsArray.push({ id: child.key, ...child.val() }); });
+                docsArray.sort((a,b) => (b.starred===true) - (a.starred===true));
+
+                docsArray.forEach((doc) => {
+                    const card = document.createElement("div"); card.className = "card doc-card";
+                    const isImg = doc.type.includes('image'); const isPdf = doc.type.includes('pdf');
+                    let imgSrc = isImg ? doc.data : (isPdf ? 'https://cdn-icons-png.flaticon.com/512/337/337946.png' : 'https://cdn-icons-png.flaticon.com/512/2965/2965335.png');
+                    const starClass = doc.starred ? "active" : "";
+                    
+                    card.innerHTML = `
+                        <div class="card-actions">
+                            <div class="action-icon action-star ${starClass}" onclick="event.stopPropagation(); toggleStar('${doc.id}', ${!!doc.starred})"><i class="fa-solid fa-star" style="font-size:12px;"></i></div>
+                            <div class="action-icon action-del" onclick="event.stopPropagation(); deleteDocument('${doc.id}', '${doc.name}', ${doc.size})"><i class="fa-solid fa-trash" style="font-size:12px;"></i></div>
+                        </div>
+                        <img src="${imgSrc}" class="doc-preview">
+                        <div class="doc-info">
+                            <span class="doc-title">${doc.name}</span>
+                            <span class="doc-size">${formatBytes(doc.size)}</span>
+                        </div>
+                    `;
+                    card.onclick = () => openModal(doc.data, doc.name, doc.type, doc.id, doc.size);
+                    list.appendChild(card);
+                });
+            });
+        }
+
+        window.toggleStar = (docId, isStarred) => { update(ref(db, `documents/${currentMemberId}/${docId}`), { starred: !isStarred }); };
+
+        window.handleFileSelect = (e) => {
+            const file = e.target.files[0]; if(!file || !currentMemberId) return;
+            pendingFile = file; let defaultName = file.name; const lastDot = defaultName.lastIndexOf('.');
+            if(lastDot !== -1) defaultName = defaultName.substring(0, lastDot);
+            document.getElementById("upload-custom-name").value = defaultName; document.getElementById("pre-upload-box").style.display = "block";
+            window.scrollTo({ top: document.getElementById("pre-upload-box").offsetTop, behavior: 'smooth' });
+        };
+        
+        window.cancelUpload = () => { pendingFile = null; document.getElementById("pre-upload-box").style.display = "none"; document.getElementById("file-input").value = ""; };
+
+        window.startUploadProcess = () => {
+            if(!pendingFile) return; const file = pendingFile;
+            isUploading = true; 
+            let customName = document.getElementById("upload-custom-name").value.trim() || "Document";
+            const ext = file.name.split('.').pop(); const finalFileName = `${customName}.${ext}`;
+            document.getElementById("pre-upload-box").style.display = "none";
+            const sizeMB = file.size / (1024 * 1024); const isImg = file.type.startsWith('image/');
+            const statusBox = document.getElementById("upload-status"); const fill = document.getElementById("progress-fill"); const text = document.getElementById("progress-text");
+            statusBox.style.display = "block"; fill.style.width = "50%"; document.getElementById("progress-size").innerText = `Size: ${formatBytes(file.size)}`;
+
+            if (isImg && sizeMB > 2.5) {
+                text.innerHTML = '<i class="fa-solid fa-compress"></i> Compressing Image...';
+                const reader = new FileReader(); reader.readAsDataURL(file);
+                reader.onload = (evt) => {
+                    const img = new Image(); img.src = evt.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas'); let w = img.width, h = img.height;
+                        if (w > 1920) { h *= 1920/w; w = 1920; } else if (h > 1080) { w *= 1080/h; h = 1080; }
+                        canvas.width = w; canvas.height = h; canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                        fill.style.width = "80%"; uploadToDB(canvas.toDataURL('image/jpeg', 0.8), finalFileName, 'image/jpeg');
+                    }
+                };
+            } else {
+                text.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Reading File...';
+                const reader = new FileReader(); reader.onprogress = (evt) => { if (evt.lengthComputable) fill.style.width = `${Math.round((evt.loaded/evt.total)*80)}%`; };
+                reader.onload = (evt) => { uploadToDB(evt.target.result, finalFileName, file.type); }; reader.readAsDataURL(file);
+            }
+        };
+
+        function uploadToDB(base64Data, fileName, fileType) {
+            document.getElementById("progress-text").innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Syncing to Vault...';
+            const finalSize = Math.round(base64Data.length * 0.75);
+            push(ref(db, `documents/${currentMemberId}`), { name: fileName, data: base64Data, type: fileType, size: finalSize, starred: false }).then(() => {
+                isUploading = false;
+                setTimeout(() => { document.getElementById("upload-status").style.display = "none"; pendingFile = null; }, 1000);
+                document.getElementById("file-input").value = ""; adjustStorage(finalSize);
+                logActivity("Upload", `Uploaded "${fileName}" to ${currentMemberName}`); showToast("Uploaded Successfully!");
+            }).catch(() => { 
+                isUploading = false;
+                document.getElementById("upload-status").style.display = "none"; showToast("Upload Failed! DB Limit error.", "error"); 
+            });
+        }
+
+        window.renameCurrentDoc = () => {
+            const lastDot = currentDocName.lastIndexOf('.'); const nameOnly = lastDot !== -1 ? currentDocName.substring(0, lastDot) : currentDocName; const ext = lastDot !== -1 ? currentDocName.substring(lastDot) : '';
+            openPrompt("Rename Document", nameOnly, (newName) => {
+                if(newName && newName !== nameOnly) {
+                    const finalName = newName + ext; update(ref(db, `documents/${currentMemberId}/${currentDocId}`), { name: finalName });
+                    logActivity("Rename", `Renamed to ${finalName}`); currentDocName = finalName; document.getElementById("modal-doc-title").innerText = finalName; document.getElementById("download-name").value = finalName; showToast("Renamed!");
+                }
+            });
+        };
+
+        window.openModal = (data, name, type, docId, size) => {
+            currentDocData = data; currentDocName = name; currentDocType = type; currentDocId = docId;
+            document.getElementById("modal-doc-title").innerText = name;
+            document.getElementById("modal-doc-info").innerHTML = `Type: <b>${type.split('/')[1].toUpperCase()}</b> &nbsp;•&nbsp; Size: <b>${formatBytes(size)}</b>`;
+            document.getElementById("download-name").value = name;
+            const imgEl = document.getElementById("modal-doc-img"); const pdfEl = document.getElementById("modal-doc-pdf"); const resizeSec = document.getElementById("resize-section");
+            if(type.includes('image')) { imgEl.src = data; imgEl.style.display = "block"; pdfEl.style.display = "none"; resizeSec.style.display = "block"; } 
+            else if (type.includes('pdf')) { pdfEl.src = data; pdfEl.style.display = "block"; imgEl.style.display = "none"; resizeSec.style.display = "none"; }
+            document.getElementById("btn-normal-download").onclick = () => { logActivity("Download", `Downloaded "${name}"`); const link = document.createElement("a"); link.href = data; link.download = document.getElementById("download-name").value.trim() || name; link.click(); };
+            document.getElementById("btn-delete-doc").onclick = () => { deleteDocument(docId, name, size); }; document.getElementById("doc-modal").classList.add("show");
+        };
+
+        window.closeModal = () => { document.getElementById("doc-modal").classList.remove("show"); setTimeout(() => { document.getElementById("modal-doc-pdf").src = ""; }, 300); };
+
+        window.deleteDocument = (docId, docName, docSize) => {
+            openCustomConfirm("Delete Document", `Are you sure you want to permanently delete "${docName}"?`, () => {
+                remove(ref(db, `documents/${currentMemberId}/${docId}`)).then(() => { 
+                    logActivity("Delete", `Deleted "${docName}"`); adjustStorage(-docSize); showToast("Document Deleted"); closeModal(); 
+                });
+            });
+        };
+
+        window.shareDocument = async () => {
+            if (!navigator.share) return showToast("Sharing not supported.", "error");
+            try { showToast("Preparing...", "warning"); const res = await fetch(currentDocData); const blob = await res.blob(); const fileName = document.getElementById("download-name").value.trim() || currentDocName; await navigator.share({ title: fileName, files: [new File([blob], fileName, { type: currentDocType })] }); showToast("Shared!"); } catch (err) { }
+        };
+
+        window.customResizeDownload = () => {
+            const w = parseInt(document.getElementById("resize-w").value); const h = parseInt(document.getElementById("resize-h").value); const targetKB = parseInt(document.getElementById("resize-kb").value); const fileName = document.getElementById("download-name").value.trim() || currentDocName;
+            if(!w && !h && !targetKB) return showToast("Enter Width, Height or Max Size", "error"); showToast("Processing Image...", "warning");
+            const img = new Image(); img.onload = () => {
+                const canvas = document.createElement("canvas"); let newW = w || img.width; let newH = h || img.height;
+                if(w && !h) newH = img.height * (w / img.width); if(h && !w) newW = img.width * (h / img.height);
+                canvas.width = newW; canvas.height = newH; canvas.getContext("2d").drawImage(img, 0, 0, newW, newH);
+                let quality = 0.95; let dataUrl = canvas.toDataURL("image/jpeg", quality);
+                if (targetKB) { let sizeKB = Math.round((dataUrl.length * 0.75) / 1024); while (sizeKB > targetKB && quality > 0.1) { quality -= 0.1; dataUrl = canvas.toDataURL("image/jpeg", quality); sizeKB = Math.round((dataUrl.length * 0.75) / 1024); } }
+                const link = document.createElement("a"); link.download = fileName; link.href = dataUrl; link.click(); showToast("Resized & Downloaded");
+            }; img.src = currentDocData;
+        };
+    </script>
+</body>
+</html>
