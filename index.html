@@ -476,22 +476,78 @@
             }).catch(() => { showToast("Database Error", "error"); btn.innerHTML = '<span><i class="fa-solid fa-shield-check"></i> Authenticate</span>'; });
         };
 
-        // WebAuthn Creation
+                // 1. FIXED: WebAuthn Creation (Saves Credential ID)
         async function setupFingerprint(dbKey) {
             try {
                 const challenge = new Uint8Array(32); window.crypto.getRandomValues(challenge);
                 const userId = new Uint8Array(16); window.crypto.getRandomValues(userId);
+                
                 const publicKey = {
-                    challenge: challenge, rp: { name: "Family Vault", id: window.location.hostname }, user: { id: userId, name: activeUserName, displayName: activeUserName },
-                    pubKeyCredParams: [{alg: -7, type: "public-key"}], authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" }, timeout: 60000
+                    challenge: challenge,
+                    rp: { name: "Family Vault", id: window.location.hostname },
+                    user: { id: userId, name: activeUserName, displayName: activeUserName },
+                    pubKeyCredParams: [{alg: -7, type: "public-key"}, {alg: -257, type: "public-key"}],
+                    // FIX: Added residentKey requirement
+                    authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required", residentKey: "required" },
+                    timeout: 60000
                 };
+                
                 const credential = await navigator.credentials.create({ publicKey });
                 if(credential) {
-                    localStorage.setItem('vault_passkey_registered', 'true'); localStorage.setItem('vault_saved_key', btoa(dbKey));
-                    document.getElementById('fingerprint-section').style.display = 'block'; showToast("Fingerprint Setup Successful!");
+                    // FIX: Save the unique credential ID so phone remembers it next time
+                    const credIdArray = Array.from(new Uint8Array(credential.rawId));
+                    localStorage.setItem('vault_cred_id', JSON.stringify(credIdArray));
+                    
+                    localStorage.setItem('vault_passkey_registered', 'true');
+                    localStorage.setItem('vault_saved_key', btoa(dbKey));
+                    document.getElementById('fingerprint-section').style.display = 'block';
+                    showToast("Fingerprint Setup Successful!");
                 }
-            } catch (err) { console.log(err); showToast("Fingerprint setup canceled.", "warning"); }
+            } catch (err) { 
+                console.log("Setup Error:", err); 
+                showToast("Fingerprint setup canceled.", "warning"); 
+            }
         }
+
+        // 2. PERFECTED: WebAuthn Login (Uses Saved Credential ID)
+        window.loginWithFingerprint = async () => {
+            try {
+                const storedId = JSON.parse(localStorage.getItem('vault_cred_id'));
+                if(!storedId) throw new Error("Credential ID missing");
+
+                const challenge = new Uint8Array(32); window.crypto.getRandomValues(challenge);
+                const publicKey = { 
+                    challenge: challenge, 
+                    rpId: window.location.hostname, 
+                    // FIX: We tell the phone EXACTLY which fingerprint to look for
+                    allowCredentials: [{
+                        id: new Uint8Array(storedId),
+                        type: "public-key",
+                        transports: ["internal"]
+                    }],
+                    userVerification: "required", 
+                    timeout: 60000 
+                };
+                
+                const assertion = await navigator.credentials.get({ publicKey });
+                if(assertion) {
+                    const savedKey = atob(localStorage.getItem('vault_saved_key'));
+                    document.getElementById("access-key").value = savedKey; 
+                    checkAccess(); // Unlock automatically
+                }
+            } catch (err) { 
+                console.log("Passkey Error:", err); 
+                showToast("Fingerprint not matched. Login with password to re-register.", "error"); 
+                
+                // Only clear if it's a real failure, not just user canceling
+                if(err.name !== "NotAllowedError") {
+                    localStorage.removeItem('vault_passkey_registered');
+                    localStorage.removeItem('vault_cred_id');
+                    document.getElementById('fingerprint-section').style.display = 'none';
+                }
+            }
+        };
+
 
         // PERFECTED: WebAuthn Login with Error Catching
         window.loginWithFingerprint = async () => {
