@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Family Vault v5.0 Final</title>
+    <title>Family Vault v6.0 Ultimate</title>
     
-    <!-- Fonts, Icons & Cropper.js -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
@@ -139,7 +138,8 @@
         
         #confirm-modal .modal-content, #prompt-modal .modal-content, #profile-modal .modal-content { padding: 40px 30px; max-width: 420px; }
         
-        .crop-wrapper { max-height: 300px; width: 100%; overflow: hidden; border-radius: 12px; margin-bottom: 15px; background: #000; }
+        /* Cropper Container Fixed Animation */
+        .crop-wrapper { max-height: 300px; width: 100%; overflow: hidden; border-radius: 12px; margin-bottom: 15px; background: #000; opacity: 0; transition: opacity 0.3s ease; }
 
         #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; align-items: center; width: 90%; max-width: 400px; }
         .toast { background: var(--modal-bg); border-left: 4px solid var(--accent-blue); color: var(--text-primary); padding: 14px 20px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 12px; font-weight: 500; font-size: 14px; animation: slideDown 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; border: 1px solid var(--panel-border); pointer-events: auto; width: 100%; }
@@ -164,7 +164,7 @@
         <div class="icon-btn" onclick="toggleTheme()" id="theme-btn"><i class="fa-solid fa-moon"></i></div>
     </div>
     <div id="toast-container"></div>
-    <div style="position: fixed; bottom: 15px; right: 15px; color: var(--text-secondary); font-size: 12px; font-weight: 600; z-index: 5;">v5.0 Bug-Free</div>
+    <div style="position: fixed; bottom: 15px; right: 15px; color: var(--text-secondary); font-size: 12px; font-weight: 600; z-index: 5;">v6.0 Ultimate</div>
 
     <!-- 1. LOGIN VIEW -->
     <div id="login-view" class="glass-panel active-view" style="max-width: 440px; padding: 3rem; border-top: 3px solid var(--accent-blue);">
@@ -185,7 +185,6 @@
             <i class="fa-solid fa-shield-check"></i> <span>Authenticate</span>
         </button>
         
-        <!-- Fingerprint / Biometric Section -->
         <div id="fingerprint-section" style="display:none; margin-top: 30px; border-top: 1px solid var(--panel-border); padding-top: 25px;">
             <p style="text-align: center; color: var(--text-secondary); font-size: 13px; margin-bottom: 15px;">Or unlock quickly with</p>
             <button class="btn btn-fingerprint" onclick="loginWithFingerprint()" style="border-radius: 20px;">
@@ -303,13 +302,12 @@
         </div>
     </div>
 
-    <!-- 5. Profile Image Edit Modal (REDESIGNED PERFECTLY) -->
+    <!-- 5. Profile Image Edit Modal -->
     <div class="modal" id="profile-modal" style="z-index: 2000;">
         <div class="modal-content" style="max-width: 450px;">
             <span class="close-btn" onclick="closeProfileModal()"><i class="fa-solid fa-xmark"></i></span>
             <h3 style="margin-bottom: 20px;">Edit Profile Photo</h3>
             
-            <!-- Step 1: Select Screen -->
             <div id="prof-select-step">
                 <div style="text-align: center; margin-bottom: 25px;">
                     <i class="fa-solid fa-circle-user" style="font-size: 5rem; color: var(--accent-blue);"></i>
@@ -326,9 +324,8 @@
                 </button>
             </div>
             
-            <!-- Step 2: Cropper Screen -->
             <div id="prof-crop-step" style="display:none;">
-                <div class="crop-wrapper" style="max-height: 300px; width: 100%; overflow: hidden; border-radius: 12px; margin-bottom: 15px; background: #000; display: block;">
+                <div class="crop-wrapper" id="crop-wrapper" style="display: block;">
                     <img id="cropper-img" src="" style="max-width: 100%; display: block;">
                 </div>
                 <button class="btn btn-success" id="btn-save-crop" style="width: 100%; margin-bottom:15px;" onclick="saveCroppedAvatar()"><i class="fa-solid fa-crop-simple"></i> Crop & Save</button>
@@ -383,12 +380,39 @@
         let isUploading = false, cropperInstance = null; 
         let activeFolderView = 'all'; 
 
-        // SMART ERROR CATCHER: Check if Passkey (Fingerprint) was registered and exists
-        if(localStorage.getItem('vault_passkey_registered') && window.PublicKeyCredential) {
+        // --- NEW SOUND SYSTEM LOGIC ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain();
+            osc.connect(gainNode); gainNode.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+            if(type === 'success') {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(400, now); osc.frequency.exponentialRampToValueAtTime(600, now + 0.1);
+                gainNode.gain.setValueAtTime(0.1, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                osc.start(now); osc.stop(now + 0.2);
+            } else if (type === 'error') {
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(200, now); osc.frequency.exponentialRampToValueAtTime(150, now + 0.2);
+                gainNode.gain.setValueAtTime(0.1, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                osc.start(now); osc.stop(now + 0.2);
+            } else if (type === 'pop') { 
+                osc.type = 'sine'; osc.frequency.setValueAtTime(600, now);
+                gainNode.gain.setValueAtTime(0.05, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                osc.start(now); osc.stop(now + 0.05);
+            } else if (type === 'delete') {
+                osc.type = 'square'; osc.frequency.setValueAtTime(150, now);
+                gainNode.gain.setValueAtTime(0.1, now); gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                osc.start(now); osc.stop(now + 0.2);
+            }
+        }
+
+        document.addEventListener('click', () => { if(audioCtx.state === 'suspended') audioCtx.resume(); }, {once:true});
+
+        // Always show fingerprint if supported (Firebase Passkey Sync)
+        if(window.PublicKeyCredential && window.location.protocol.startsWith('http')) {
             document.getElementById('fingerprint-section').style.display = 'block';
         }
 
-        // Auto-Lock Feature
         let inactivityTime = () => {
             let time;
             window.onload = resetTimer; document.onmousemove = resetTimer; document.onkeydown = resetTimer; document.ontouchstart = resetTimer;
@@ -405,16 +429,16 @@
         };
         inactivityTime();
 
-        // Theme Setup
         if (localStorage.getItem('vaultTheme') === 'light') { document.body.classList.add('light-mode'); document.getElementById('theme-btn').innerHTML = '<i class="fa-solid fa-sun"></i>'; }
         window.toggleTheme = () => {
+            playSound('pop');
             const isLight = document.body.classList.toggle('light-mode'); localStorage.setItem('vaultTheme', isLight ? 'light' : 'dark');
             document.getElementById('theme-btn').innerHTML = isLight ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
         };
 
-        // Grid/List Setup
         let currentView = localStorage.getItem('vaultView') || 'grid';
         window.setView = (v) => {
+            playSound('pop');
             currentView = v; localStorage.setItem('vaultView', v);
             const list = document.getElementById("documents-list");
             if(v === 'list') { list.classList.replace('grid-view', 'list-view'); document.getElementById("btn-list").classList.add("active"); document.getElementById("btn-grid").classList.remove("active"); } 
@@ -427,21 +451,21 @@
         }
 
         window.showToast = (msg, type = "success") => {
+            playSound(type);
             const container = document.getElementById("toast-container"); const toast = document.createElement("div"); toast.className = `toast ${type}`;
             const icon = type === "success" ? '<i class="fa-solid fa-check-circle" style="color:#10b981;"></i>' : type === "warning" ? '<i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b;"></i>' : '<i class="fa-solid fa-circle-exclamation" style="color:#ef4444;"></i>';
             toast.innerHTML = `${icon} <span style="flex:1;">${msg}</span>`; container.appendChild(toast);
             setTimeout(() => { toast.style.animation = "fadeOut 0.3s forwards"; setTimeout(() => toast.remove(), 300); }, 3000);
         };
 
-        window.openCustomConfirm = (t, m, cb) => { document.getElementById("confirm-title").innerText = t; document.getElementById("confirm-message").innerText = m; customConfirmCallback = cb; document.getElementById("confirm-modal").classList.add("show"); };
+        window.openCustomConfirm = (t, m, cb) => { playSound('pop'); document.getElementById("confirm-title").innerText = t; document.getElementById("confirm-message").innerText = m; customConfirmCallback = cb; document.getElementById("confirm-modal").classList.add("show"); };
         window.closeConfirmModal = () => { document.getElementById("confirm-modal").classList.remove("show"); customConfirmCallback = null; };
         document.getElementById("confirm-yes-btn").onclick = () => { if(customConfirmCallback) customConfirmCallback(); closeConfirmModal(); };
 
-        window.openPrompt = (title, defVal, cb) => { document.getElementById("prompt-title").innerText = title; document.getElementById("prompt-input").value = defVal; promptCallback = cb; document.getElementById("prompt-modal").classList.add("show"); document.getElementById("prompt-input").focus(); };
+        window.openPrompt = (title, defVal, cb) => { playSound('pop'); document.getElementById("prompt-title").innerText = title; document.getElementById("prompt-input").value = defVal; promptCallback = cb; document.getElementById("prompt-modal").classList.add("show"); document.getElementById("prompt-input").focus(); };
         window.closePromptModal = () => { document.getElementById("prompt-modal").classList.remove("show"); promptCallback = null; };
         document.getElementById("prompt-save-btn").onclick = () => { if(promptCallback) promptCallback(document.getElementById("prompt-input").value.trim()); closePromptModal(); };
 
-        // Storage Tracker
         function updateGlobalStorage() {
             get(ref(db, 'vault_stats/totalStorage')).then((snap) => {
                 let total = snap.val() || 0; const limit = 1073741824; 
@@ -455,8 +479,9 @@
             get(ref(db, 'vault_stats/totalStorage')).then((snap) => { let current = snap.val() || 0; set(ref(db, 'vault_stats/totalStorage'), Math.max(0, current + bytesChange)); });
         }
 
-        // --- AUTH LOGIC ---
+        // --- AUTH & FINGERPRINT ---
         window.checkAccess = () => {
+            playSound('pop');
             const key = document.getElementById("access-key").value.trim(); if(key === "") return showToast("Please enter key", "warning");
             const btn = document.getElementById("btn-login"); btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking...';
             get(child(ref(db), `Vault_Access_Keys/${key}`)).then((snapshot) => {
@@ -465,10 +490,9 @@
                     document.getElementById("login-view").classList.remove("active-view"); document.getElementById("dashboard-view").classList.add("active-view");
                     showToast(`Welcome, ${activeUserName}!`); logActivity("Login", `Unlocked the vault.`); loadMembers(); updateGlobalStorage();
                     
-                    // Offer Fingerprint setup
                     setTimeout(() => {
                         if(window.PublicKeyCredential && window.location.protocol.startsWith('http') && !localStorage.getItem('vault_passkey_registered')) {
-                            openCustomConfirm("Enable Fingerprint?", "Do you want to use Fingerprint or Face ID for fast login next time?", () => { setupFingerprint(key); });
+                            openCustomConfirm("Enable Fingerprint?", "Do you want to securely save Fingerprint/Face ID in Database?", () => { setupFingerprint(key); });
                         }
                     }, 1500);
 
@@ -476,99 +500,52 @@
             }).catch(() => { showToast("Database Error", "error"); btn.innerHTML = '<span><i class="fa-solid fa-shield-check"></i> Authenticate</span>'; });
         };
 
-                // 1. FIXED: WebAuthn Creation (Saves Credential ID)
         async function setupFingerprint(dbKey) {
             try {
                 const challenge = new Uint8Array(32); window.crypto.getRandomValues(challenge);
-                const userId = new Uint8Array(16); window.crypto.getRandomValues(userId);
+                const passkeyIdStr = "user_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+                const userId = new TextEncoder().encode(passkeyIdStr); 
                 
                 const publicKey = {
-                    challenge: challenge,
-                    rp: { name: "Family Vault", id: window.location.hostname },
+                    challenge: challenge, rp: { name: "Family Vault", id: window.location.hostname },
                     user: { id: userId, name: activeUserName, displayName: activeUserName },
                     pubKeyCredParams: [{alg: -7, type: "public-key"}, {alg: -257, type: "public-key"}],
-                    // FIX: Added residentKey requirement
                     authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required", residentKey: "required" },
                     timeout: 60000
                 };
                 
                 const credential = await navigator.credentials.create({ publicKey });
                 if(credential) {
-                    // FIX: Save the unique credential ID so phone remembers it next time
-                    const credIdArray = Array.from(new Uint8Array(credential.rawId));
-                    localStorage.setItem('vault_cred_id', JSON.stringify(credIdArray));
-                    
-                    localStorage.setItem('vault_passkey_registered', 'true');
-                    localStorage.setItem('vault_saved_key', btoa(dbKey));
-                    document.getElementById('fingerprint-section').style.display = 'block';
-                    showToast("Fingerprint Setup Successful!");
+                    set(ref(db, `Vault_Passkeys/${passkeyIdStr}`), btoa(dbKey)).then(() => {
+                        localStorage.setItem('vault_passkey_registered', 'true');
+                        showToast("Fingerprint permanently saved to Database!");
+                    });
                 }
-            } catch (err) { 
-                console.log("Setup Error:", err); 
-                showToast("Fingerprint setup canceled.", "warning"); 
-            }
+            } catch (err) { showToast("Fingerprint setup canceled.", "warning"); }
         }
 
-        // 2. PERFECTED: WebAuthn Login (Uses Saved Credential ID)
         window.loginWithFingerprint = async () => {
-            try {
-                const storedId = JSON.parse(localStorage.getItem('vault_cred_id'));
-                if(!storedId) throw new Error("Credential ID missing");
-
-                const challenge = new Uint8Array(32); window.crypto.getRandomValues(challenge);
-                const publicKey = { 
-                    challenge: challenge, 
-                    rpId: window.location.hostname, 
-                    // FIX: We tell the phone EXACTLY which fingerprint to look for
-                    allowCredentials: [{
-                        id: new Uint8Array(storedId),
-                        type: "public-key",
-                        transports: ["internal"]
-                    }],
-                    userVerification: "required", 
-                    timeout: 60000 
-                };
-                
-                const assertion = await navigator.credentials.get({ publicKey });
-                if(assertion) {
-                    const savedKey = atob(localStorage.getItem('vault_saved_key'));
-                    document.getElementById("access-key").value = savedKey; 
-                    checkAccess(); // Unlock automatically
-                }
-            } catch (err) { 
-                console.log("Passkey Error:", err); 
-                showToast("Fingerprint not matched. Login with password to re-register.", "error"); 
-                
-                // Only clear if it's a real failure, not just user canceling
-                if(err.name !== "NotAllowedError") {
-                    localStorage.removeItem('vault_passkey_registered');
-                    localStorage.removeItem('vault_cred_id');
-                    document.getElementById('fingerprint-section').style.display = 'none';
-                }
-            }
-        };
-
-
-        // PERFECTED: WebAuthn Login with Error Catching
-        window.loginWithFingerprint = async () => {
+            playSound('pop');
             try {
                 const challenge = new Uint8Array(32); window.crypto.getRandomValues(challenge);
                 const publicKey = { challenge: challenge, rpId: window.location.hostname, userVerification: "required", timeout: 60000 };
+                
                 const assertion = await navigator.credentials.get({ publicKey });
-                if(assertion) {
-                    const savedKey = atob(localStorage.getItem('vault_saved_key'));
-                    document.getElementById("access-key").value = savedKey; checkAccess(); 
+                if(assertion && assertion.response.userHandle) {
+                    const passkeyIdStr = new TextDecoder().decode(assertion.response.userHandle);
+                    get(child(ref(db), `Vault_Passkeys/${passkeyIdStr}`)).then((snapshot) => {
+                        if (snapshot.exists()) {
+                            const savedKey = atob(snapshot.val());
+                            document.getElementById("access-key").value = savedKey; checkAccess(); 
+                        } else { showToast("Passkey data not found in Database.", "error"); }
+                    });
                 }
-            } catch (err) { 
-                console.log("Passkey Error:", err); 
-                showToast("Fingerprint not found. Please login with password to re-register.", "error"); 
-                localStorage.removeItem('vault_passkey_registered');
-                document.getElementById('fingerprint-section').style.display = 'none';
-            }
+            } catch (err) { showToast("Fingerprint not matched or canceled.", "error"); }
         };
 
         function logActivity(action, details) { push(ref(db, 'Vault_History'), { user: activeUserName, action: action, details: details, time: Date.now() }); }
         window.openHistory = () => {
+            playSound('pop');
             document.getElementById('history-modal').classList.add('show');
             const list = document.getElementById('history-list'); list.innerHTML = `<p style="text-align:center; color:var(--text-secondary); margin-top:20px;"><i class="fa-solid fa-spinner fa-spin"></i> Loading logs...</p>`;
             get(query(ref(db, 'Vault_History'), limitToLast(100))).then((snapshot) => {
@@ -585,6 +562,7 @@
         };
 
         window.addMember = () => {
+            playSound('pop');
             const nameInput = document.getElementById("new-member-name"); if(nameInput.value.trim() === "") return showToast("Enter profile name", "error");
             push(ref(db, 'members'), { name: nameInput.value.trim(), avatar: "" }).then(() => { logActivity("Profile Created", `Created ${nameInput.value.trim()}`); showToast(`Profile created`); nameInput.value = ""; });
         };
@@ -603,26 +581,29 @@
                         ${avatarHtml}
                         <h3 style="margin:0; font-size:15px; color: var(--text-primary);">${data.name}</h3>
                     `;
-                    card.onclick = () => openMemberDocs(id, data.name);
+                    card.onclick = () => { playSound('pop'); openMemberDocs(id, data.name); };
                     list.appendChild(card);
                 });
             });
         }
-        window.deleteMember = (id, name) => { openCustomConfirm("Delete Profile", `Delete ${name} and ALL documents?`, () => { remove(ref(db, `members/${id}`)); remove(ref(db, `documents/${id}`)); logActivity("Delete", `Deleted member: ${name}`); showToast(`Profile deleted`); }); };
+        window.deleteMember = (id, name) => { openCustomConfirm("Delete Profile", `Delete ${name} and ALL documents?`, () => { playSound('delete'); remove(ref(db, `members/${id}`)); remove(ref(db, `documents/${id}`)); logActivity("Delete", `Deleted member: ${name}`); showToast(`Profile deleted`); }); };
 
-        // --- PERFECTED: PROFILE CROPPER MODAL UI ---
+        // --- CROPPER FLASH FIX ---
         window.openProfileModal = (id) => { 
+            playSound('pop');
             editingProfileId = id; 
             document.getElementById("profile-modal").classList.add("show"); 
             document.getElementById("prof-crop-step").style.display = "none";
             document.getElementById("prof-select-step").style.display = "block";
-            document.getElementById("profile-file-input").value = ""; // Reset input
+            document.getElementById("profile-file-input").value = ""; 
         };
         
         window.closeProfileModal = () => { 
+            playSound('pop');
             document.getElementById("profile-modal").classList.remove("show"); editingProfileId = null; 
             if(cropperInstance) { cropperInstance.destroy(); cropperInstance = null; }
-            document.getElementById("cropper-img").src = ""; // Clear mem
+            document.getElementById("cropper-img").src = ""; 
+            document.getElementById("crop-wrapper").style.opacity = "0"; // Reset opacity
         };
         
         window.initCropProcess = (e) => {
@@ -630,38 +611,49 @@
             
             const imgUrl = URL.createObjectURL(file);
             const imgEl = document.getElementById("cropper-img");
+            const wrapper = document.getElementById("crop-wrapper");
             
             // Switch UI screens inside modal
             document.getElementById("prof-select-step").style.display = "none";
             document.getElementById("prof-crop-step").style.display = "block";
             
+            wrapper.style.opacity = "0"; // HIDDEN during initialization to prevent flash
             imgEl.src = imgUrl;
             
             imgEl.onload = () => {
                 setTimeout(() => {
                     if(cropperInstance) cropperInstance.destroy();
-                    cropperInstance = new Cropper(imgEl, { aspectRatio: 1, viewMode: 1, autoCropArea: 0.8, background: true });
-                }, 100); 
+                    cropperInstance = new Cropper(imgEl, { 
+                        aspectRatio: 1, 
+                        viewMode: 1, 
+                        autoCropArea: 0.8, 
+                        background: true,
+                        ready: function () {
+                            wrapper.style.opacity = "1"; // Show ONLY when fully ready
+                        }
+                    });
+                }, 50); 
             };
         };
 
         window.saveCroppedAvatar = () => {
             if(!cropperInstance || !editingProfileId) return;
+            playSound('success');
             const canvas = cropperInstance.getCroppedCanvas({ width: 200, height: 200 });
             update(ref(db, `members/${editingProfileId}`), { avatar: canvas.toDataURL('image/jpeg', 0.8) });
             showToast("Profile Photo Updated!"); closeProfileModal();
         };
         
-        window.removeProfilePhoto = () => { if(editingProfileId) { update(ref(db, `members/${editingProfileId}`), { avatar: "" }); showToast("Photo Removed"); closeProfileModal(); } };
+        window.removeProfilePhoto = () => { if(editingProfileId) { playSound('delete'); update(ref(db, `members/${editingProfileId}`), { avatar: "" }); showToast("Photo Removed"); closeProfileModal(); } };
 
-        window.showDashboard = () => { document.getElementById("documents-view").classList.remove("active-view"); document.getElementById("dashboard-view").classList.add("active-view"); updateGlobalStorage(); };
+        window.showDashboard = () => { playSound('pop'); document.getElementById("documents-view").classList.remove("active-view"); document.getElementById("dashboard-view").classList.add("active-view"); updateGlobalStorage(); };
 
         window.searchDocs = (val) => {
             const term = val.toLowerCase(); const cards = document.querySelectorAll('#documents-list .doc-card');
             cards.forEach(c => { const title = c.querySelector('.doc-title').innerText.toLowerCase(); c.style.display = title.includes(term) ? "flex" : "none"; });
         };
 
-        window.handleDocBackBtn = () => { if (activeFolderView !== 'all') { openMemberDocs(currentMemberId, currentMemberName); } else { showDashboard(); } };
+        window.handleDocBackBtn = () => { playSound('pop'); if (activeFolderView !== 'all') { openMemberDocs(currentMemberId, currentMemberName); } else { showDashboard(); } };
 
         window.openMemberDocs = (id, name) => {
             currentMemberId = id; currentMemberName = name; activeFolderView = 'all';
@@ -679,6 +671,7 @@
         };
 
         window.openVirtualFolder = (folderType) => {
+            playSound('pop');
             activeFolderView = folderType; let folderName = folderType === 'image' ? 'Images' : 'PDFs';
             document.getElementById("current-member-name").innerHTML = `<i class="fa-regular fa-folder-open"></i> ${currentMemberName} <span style="color:var(--text-secondary); font-size:14px;">/ ${folderName}</span>`;
             fetchAndRouteDocuments();
@@ -731,16 +724,17 @@
                             <img src="${imgSrc}" class="doc-preview">
                             <div class="doc-info"><span class="doc-title">${doc.name}</span><span class="doc-size">${formatBytes(doc.size)}</span></div>
                         `;
-                        card.onclick = () => openModal(doc.data, doc.name, doc.type, doc.id, doc.size);
+                        card.onclick = () => { playSound('pop'); openModal(doc.data, doc.name, doc.type, doc.id, doc.size); };
                         list.appendChild(card);
                     });
                 }
             });
         }
 
-        window.toggleStar = (docId, isStarred) => { update(ref(db, `documents/${currentMemberId}/${docId}`), { starred: !isStarred }); };
+        window.toggleStar = (docId, isStarred) => { playSound('pop'); update(ref(db, `documents/${currentMemberId}/${docId}`), { starred: !isStarred }); };
 
         window.handleFileSelect = (e) => {
+            playSound('pop');
             const file = e.target.files[0]; if(!file || !currentMemberId) return;
             pendingFile = file; let defaultName = file.name; const lastDot = defaultName.lastIndexOf('.');
             if(lastDot !== -1) defaultName = defaultName.substring(0, lastDot);
@@ -748,9 +742,10 @@
             window.scrollTo({ top: document.getElementById("pre-upload-box").offsetTop, behavior: 'smooth' });
         };
         
-        window.cancelUpload = () => { pendingFile = null; document.getElementById("pre-upload-box").style.display = "none"; document.getElementById("file-input").value = ""; };
+        window.cancelUpload = () => { playSound('pop'); pendingFile = null; document.getElementById("pre-upload-box").style.display = "none"; document.getElementById("file-input").value = ""; };
 
         window.startUploadProcess = () => {
+            playSound('pop');
             if(!pendingFile) return; const file = pendingFile; isUploading = true; 
             let customName = document.getElementById("upload-custom-name").value.trim() || "Document";
             const ext = file.name.split('.').pop(); const finalFileName = `${customName}.${ext}`;
@@ -789,6 +784,7 @@
         }
 
         window.renameCurrentDoc = () => {
+            playSound('pop');
             const lastDot = currentDocName.lastIndexOf('.'); const nameOnly = lastDot !== -1 ? currentDocName.substring(0, lastDot) : currentDocName; const ext = lastDot !== -1 ? currentDocName.substring(lastDot) : '';
             openPrompt("Rename Document", nameOnly, (newName) => {
                 if(newName && newName !== nameOnly) {
@@ -806,24 +802,27 @@
             const imgEl = document.getElementById("modal-doc-img"); const pdfEl = document.getElementById("modal-doc-pdf"); const resizeSec = document.getElementById("resize-section");
             if(type.includes('image')) { imgEl.src = data; imgEl.style.display = "block"; pdfEl.style.display = "none"; resizeSec.style.display = "block"; } 
             else if (type.includes('pdf')) { pdfEl.src = data; pdfEl.style.display = "block"; imgEl.style.display = "none"; resizeSec.style.display = "none"; }
-            document.getElementById("btn-normal-download").onclick = () => { logActivity("Download", `Downloaded "${name}"`); const link = document.createElement("a"); link.href = data; link.download = document.getElementById("download-name").value.trim() || name; link.click(); };
+            document.getElementById("btn-normal-download").onclick = () => { playSound('success'); logActivity("Download", `Downloaded "${name}"`); const link = document.createElement("a"); link.href = data; link.download = document.getElementById("download-name").value.trim() || name; link.click(); };
             document.getElementById("btn-delete-doc").onclick = () => { deleteDocument(docId, name, size); }; document.getElementById("doc-modal").classList.add("show");
         };
 
-        window.closeModal = () => { document.getElementById("doc-modal").classList.remove("show"); setTimeout(() => { document.getElementById("modal-doc-pdf").src = ""; }, 300); };
+        window.closeModal = () => { playSound('pop'); document.getElementById("doc-modal").classList.remove("show"); setTimeout(() => { document.getElementById("modal-doc-pdf").src = ""; }, 300); };
 
         window.deleteDocument = (docId, docName, docSize) => {
             openCustomConfirm("Delete Document", `Are you sure you want to permanently delete "${docName}"?`, () => {
+                playSound('delete');
                 remove(ref(db, `documents/${currentMemberId}/${docId}`)).then(() => { logActivity("Delete", `Deleted "${docName}"`); adjustStorage(-docSize); showToast("Document Deleted"); closeModal(); });
             });
         };
 
         window.shareDocument = async () => {
+            playSound('pop');
             if (!navigator.share) return showToast("Sharing not supported.", "error");
             try { showToast("Preparing...", "warning"); const res = await fetch(currentDocData); const blob = await res.blob(); const fileName = document.getElementById("download-name").value.trim() || currentDocName; await navigator.share({ title: fileName, files: [new File([blob], fileName, { type: currentDocType })] }); showToast("Shared!"); } catch (err) { }
         };
 
         window.customResizeDownload = () => {
+            playSound('success');
             const w = parseInt(document.getElementById("resize-w").value); const h = parseInt(document.getElementById("resize-h").value); const targetKB = parseInt(document.getElementById("resize-kb").value); const fileName = document.getElementById("download-name").value.trim() || currentDocName;
             if(!w && !h && !targetKB) return showToast("Enter Width, Height or Max Size", "error"); showToast("Processing Image...", "warning");
             const img = new Image(); img.onload = () => {
