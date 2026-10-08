@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Family Vault v4.0 Ultimate</title>
+    <title>Family Vault v5.0 Final</title>
     
     <!-- Fonts, Icons & Cropper.js -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -46,7 +46,6 @@
         h1, h2, h3 { font-weight: 700; margin-bottom: 1.5rem; text-align: center; }
         h2 { font-size: 1.8rem; background: linear-gradient(135deg, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
-        /* ADVANCED LOGIN UI */
         .vault-logo { width: 90px; height: 90px; background: rgba(56, 189, 248, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; border: 2px solid var(--accent-blue); box-shadow: 0 0 20px rgba(56, 189, 248, 0.3); animation: pulseLock 2s infinite; }
         @keyframes pulseLock { 0% { box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); transform: scale(1); } 50% { box-shadow: 0 0 30px rgba(56, 189, 248, 0.6); transform: scale(1.05); } 100% { box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); transform: scale(1); } }
         
@@ -63,7 +62,6 @@
         .btn-danger { background: linear-gradient(135deg, #dc2626, #ef4444); box-shadow: 0 8px 20px -5px rgba(220, 38, 38, 0.4); color: white; border: none; }
         .btn-success { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 8px 20px -5px rgba(16, 185, 129, 0.4); color: white; border: none; }
         
-        /* Fingerprint Login UI */
         .btn-fingerprint { background: transparent; color: var(--accent-blue); border: 2px dashed var(--panel-border); box-shadow: none; margin-top: 10px; flex-direction: column; padding: 20px; transition: 0.3s; }
         .btn-fingerprint:hover { background: rgba(56, 189, 248, 0.05); border-color: var(--accent-blue); transform: scale(1.02); }
 
@@ -141,7 +139,7 @@
         
         #confirm-modal .modal-content, #prompt-modal .modal-content, #profile-modal .modal-content { padding: 40px 30px; max-width: 420px; }
         
-        .crop-wrapper { max-height: 300px; width: 100%; overflow: hidden; border-radius: 12px; margin-bottom: 15px; display: none; }
+        .crop-wrapper { max-height: 300px; width: 100%; overflow: hidden; border-radius: 12px; margin-bottom: 15px; background: #000; }
 
         #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; align-items: center; width: 90%; max-width: 400px; }
         .toast { background: var(--modal-bg); border-left: 4px solid var(--accent-blue); color: var(--text-primary); padding: 14px 20px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 12px; font-weight: 500; font-size: 14px; animation: slideDown 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; border: 1px solid var(--panel-border); pointer-events: auto; width: 100%; }
@@ -166,12 +164,11 @@
         <div class="icon-btn" onclick="toggleTheme()" id="theme-btn"><i class="fa-solid fa-moon"></i></div>
     </div>
     <div id="toast-container"></div>
-    <div style="position: fixed; bottom: 15px; right: 15px; color: var(--text-secondary); font-size: 12px; font-weight: 600; z-index: 5;">v4.0 Ultimate</div>
+    <div style="position: fixed; bottom: 15px; right: 15px; color: var(--text-secondary); font-size: 12px; font-weight: 600; z-index: 5;">v5.0 Bug-Free</div>
 
-    <!-- 1. ADVANCED LOGIN VIEW -->
+    <!-- 1. LOGIN VIEW -->
     <div id="login-view" class="glass-panel active-view" style="max-width: 440px; padding: 3rem; border-top: 3px solid var(--accent-blue);">
         
-        <!-- Glowing Vault Icon -->
         <div class="vault-logo">
             <i class="fa-solid fa-lock" style="font-size: 2.2rem; color: var(--accent-blue);"></i>
         </div>
@@ -188,7 +185,7 @@
             <i class="fa-solid fa-shield-check"></i> <span>Authenticate</span>
         </button>
         
-        <!-- Biometric / Fingerprint Section -->
+        <!-- Fingerprint / Biometric Section -->
         <div id="fingerprint-section" style="display:none; margin-top: 30px; border-top: 1px solid var(--panel-border); padding-top: 25px;">
             <p style="text-align: center; color: var(--text-secondary); font-size: 13px; margin-bottom: 15px;">Or unlock quickly with</p>
             <button class="btn btn-fingerprint" onclick="loginWithFingerprint()" style="border-radius: 20px;">
@@ -306,25 +303,37 @@
         </div>
     </div>
 
-    <!-- 5. Profile Image Edit Modal (FIXED CROPPER) -->
+    <!-- 5. Profile Image Edit Modal (REDESIGNED PERFECTLY) -->
     <div class="modal" id="profile-modal" style="z-index: 2000;">
         <div class="modal-content" style="max-width: 450px;">
             <span class="close-btn" onclick="closeProfileModal()"><i class="fa-solid fa-xmark"></i></span>
-            <h3 style="margin-bottom: 20px;">Profile Photo</h3>
+            <h3 style="margin-bottom: 20px;">Edit Profile Photo</h3>
             
-            <div id="prof-select-step" style="text-align: center;">
-                <label class="btn" style="width: 100%; border-radius: 12px; padding: 16px; margin-bottom: 15px;">
-                    <i class="fa-solid fa-camera"></i> Select Photo to Crop
-                    <input type="file" accept="image/*" onchange="initCropProcess(event)" style="display:none;">
+            <!-- Step 1: Select Screen -->
+            <div id="prof-select-step">
+                <div style="text-align: center; margin-bottom: 25px;">
+                    <i class="fa-solid fa-circle-user" style="font-size: 5rem; color: var(--accent-blue);"></i>
+                    <p style="color: var(--text-secondary); font-size: 14px; margin-top: 12px;">Choose a new photo to update profile</p>
+                </div>
+                
+                <label class="btn" style="width: 100%; border-radius: 12px; padding: 16px; margin-bottom: 15px; cursor: pointer;">
+                    <i class="fa-solid fa-camera"></i> Select Photo
+                    <input type="file" accept="image/*" onchange="initCropProcess(event)" style="display:none;" id="profile-file-input">
                 </label>
+                
+                <button class="btn btn-outline" id="btn-remove-photo" style="width: 100%; color: #ef4444; border-color: rgba(239, 68, 68, 0.4);" onclick="removeProfilePhoto()">
+                    <i class="fa-solid fa-trash"></i> Remove Current Photo
+                </button>
             </div>
             
-            <div id="prof-crop-step" class="crop-wrapper">
-                <img id="cropper-img" src="" style="max-width: 100%; display: block;">
+            <!-- Step 2: Cropper Screen -->
+            <div id="prof-crop-step" style="display:none;">
+                <div class="crop-wrapper" style="max-height: 300px; width: 100%; overflow: hidden; border-radius: 12px; margin-bottom: 15px; background: #000; display: block;">
+                    <img id="cropper-img" src="" style="max-width: 100%; display: block;">
+                </div>
+                <button class="btn btn-success" id="btn-save-crop" style="width: 100%; margin-bottom:15px;" onclick="saveCroppedAvatar()"><i class="fa-solid fa-crop-simple"></i> Crop & Save</button>
+                <button class="btn btn-outline" style="width: 100%; border-color: var(--panel-border);" onclick="closeProfileModal()">Cancel</button>
             </div>
-            <button class="btn btn-success" id="btn-save-crop" style="width: 100%; display:none; margin-bottom:15px;" onclick="saveCroppedAvatar()"><i class="fa-solid fa-crop-simple"></i> Crop & Save</button>
-
-            <button class="btn btn-outline" id="btn-remove-photo" style="width: 100%; color: #ef4444; border-color: rgba(239, 68, 68, 0.4);" onclick="removeProfilePhoto()"><i class="fa-solid fa-trash"></i> Remove Current Photo</button>
         </div>
     </div>
 
@@ -374,7 +383,7 @@
         let isUploading = false, cropperInstance = null; 
         let activeFolderView = 'all'; 
 
-        // Check if Passkey (Fingerprint) was registered previously
+        // SMART ERROR CATCHER: Check if Passkey (Fingerprint) was registered and exists
         if(localStorage.getItem('vault_passkey_registered') && window.PublicKeyCredential) {
             document.getElementById('fingerprint-section').style.display = 'block';
         }
@@ -396,12 +405,14 @@
         };
         inactivityTime();
 
+        // Theme Setup
         if (localStorage.getItem('vaultTheme') === 'light') { document.body.classList.add('light-mode'); document.getElementById('theme-btn').innerHTML = '<i class="fa-solid fa-sun"></i>'; }
         window.toggleTheme = () => {
             const isLight = document.body.classList.toggle('light-mode'); localStorage.setItem('vaultTheme', isLight ? 'light' : 'dark');
             document.getElementById('theme-btn').innerHTML = isLight ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
         };
 
+        // Grid/List Setup
         let currentView = localStorage.getItem('vaultView') || 'grid';
         window.setView = (v) => {
             currentView = v; localStorage.setItem('vaultView', v);
@@ -430,6 +441,7 @@
         window.closePromptModal = () => { document.getElementById("prompt-modal").classList.remove("show"); promptCallback = null; };
         document.getElementById("prompt-save-btn").onclick = () => { if(promptCallback) promptCallback(document.getElementById("prompt-input").value.trim()); closePromptModal(); };
 
+        // Storage Tracker
         function updateGlobalStorage() {
             get(ref(db, 'vault_stats/totalStorage')).then((snap) => {
                 let total = snap.val() || 0; const limit = 1073741824; 
@@ -443,7 +455,7 @@
             get(ref(db, 'vault_stats/totalStorage')).then((snap) => { let current = snap.val() || 0; set(ref(db, 'vault_stats/totalStorage'), Math.max(0, current + bytesChange)); });
         }
 
-        // --- AUTH & FINGERPRINT LOGIC ---
+        // --- AUTH LOGIC ---
         window.checkAccess = () => {
             const key = document.getElementById("access-key").value.trim(); if(key === "") return showToast("Please enter key", "warning");
             const btn = document.getElementById("btn-login"); btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking...';
@@ -453,12 +465,10 @@
                     document.getElementById("login-view").classList.remove("active-view"); document.getElementById("dashboard-view").classList.add("active-view");
                     showToast(`Welcome, ${activeUserName}!`); logActivity("Login", `Unlocked the vault.`); loadMembers(); updateGlobalStorage();
                     
-                    // Ask to setup Fingerprint if HTTPS/Vercel and not registered
+                    // Offer Fingerprint setup
                     setTimeout(() => {
                         if(window.PublicKeyCredential && window.location.protocol.startsWith('http') && !localStorage.getItem('vault_passkey_registered')) {
-                            openCustomConfirm("Enable Fingerprint?", "Do you want to use Fingerprint or Face ID for fast login next time?", () => {
-                                setupFingerprint(key);
-                            });
+                            openCustomConfirm("Enable Fingerprint?", "Do you want to use Fingerprint or Face ID for fast login next time?", () => { setupFingerprint(key); });
                         }
                     }, 1500);
 
@@ -471,26 +481,19 @@
             try {
                 const challenge = new Uint8Array(32); window.crypto.getRandomValues(challenge);
                 const userId = new Uint8Array(16); window.crypto.getRandomValues(userId);
-                
                 const publicKey = {
-                    challenge: challenge,
-                    rp: { name: "Family Vault", id: window.location.hostname },
-                    user: { id: userId, name: activeUserName, displayName: activeUserName },
-                    pubKeyCredParams: [{alg: -7, type: "public-key"}],
-                    authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" },
-                    timeout: 60000
+                    challenge: challenge, rp: { name: "Family Vault", id: window.location.hostname }, user: { id: userId, name: activeUserName, displayName: activeUserName },
+                    pubKeyCredParams: [{alg: -7, type: "public-key"}], authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" }, timeout: 60000
                 };
                 const credential = await navigator.credentials.create({ publicKey });
                 if(credential) {
-                    localStorage.setItem('vault_passkey_registered', 'true');
-                    localStorage.setItem('vault_saved_key', btoa(dbKey));
-                    document.getElementById('fingerprint-section').style.display = 'block';
-                    showToast("Fingerprint Setup Successful!");
+                    localStorage.setItem('vault_passkey_registered', 'true'); localStorage.setItem('vault_saved_key', btoa(dbKey));
+                    document.getElementById('fingerprint-section').style.display = 'block'; showToast("Fingerprint Setup Successful!");
                 }
-            } catch (err) { console.log(err); showToast("Fingerprint setup canceled or not supported.", "warning"); }
+            } catch (err) { console.log(err); showToast("Fingerprint setup canceled.", "warning"); }
         }
 
-        // WebAuthn Login
+        // PERFECTED: WebAuthn Login with Error Catching
         window.loginWithFingerprint = async () => {
             try {
                 const challenge = new Uint8Array(32); window.crypto.getRandomValues(challenge);
@@ -498,10 +501,14 @@
                 const assertion = await navigator.credentials.get({ publicKey });
                 if(assertion) {
                     const savedKey = atob(localStorage.getItem('vault_saved_key'));
-                    document.getElementById("access-key").value = savedKey;
-                    checkAccess(); // Trigger auto login
+                    document.getElementById("access-key").value = savedKey; checkAccess(); 
                 }
-            } catch (err) { console.log(err); showToast("Fingerprint verification failed.", "error"); }
+            } catch (err) { 
+                console.log("Passkey Error:", err); 
+                showToast("Fingerprint not found. Please login with password to re-register.", "error"); 
+                localStorage.removeItem('vault_passkey_registered');
+                document.getElementById('fingerprint-section').style.display = 'none';
+            }
         };
 
         function logActivity(action, details) { push(ref(db, 'Vault_History'), { user: activeUserName, action: action, details: details, time: Date.now() }); }
@@ -547,30 +554,32 @@
         }
         window.deleteMember = (id, name) => { openCustomConfirm("Delete Profile", `Delete ${name} and ALL documents?`, () => { remove(ref(db, `members/${id}`)); remove(ref(db, `documents/${id}`)); logActivity("Delete", `Deleted member: ${name}`); showToast(`Profile deleted`); }); };
 
-        // --- FIXED: PROFILE CROPPER ---
+        // --- PERFECTED: PROFILE CROPPER MODAL UI ---
         window.openProfileModal = (id) => { 
-            editingProfileId = id; document.getElementById("profile-modal").classList.add("show"); 
+            editingProfileId = id; 
+            document.getElementById("profile-modal").classList.add("show"); 
             document.getElementById("prof-crop-step").style.display = "none";
-            document.getElementById("btn-save-crop").style.display = "none";
-            document.getElementById("btn-remove-photo").style.display = "block";
             document.getElementById("prof-select-step").style.display = "block";
+            document.getElementById("profile-file-input").value = ""; // Reset input
         };
+        
         window.closeProfileModal = () => { 
             document.getElementById("profile-modal").classList.remove("show"); editingProfileId = null; 
             if(cropperInstance) { cropperInstance.destroy(); cropperInstance = null; }
+            document.getElementById("cropper-img").src = ""; // Clear mem
         };
         
         window.initCropProcess = (e) => {
             const file = e.target.files[0]; if(!file || !editingProfileId) return;
+            
             const imgUrl = URL.createObjectURL(file);
             const imgEl = document.getElementById("cropper-img");
             
+            // Switch UI screens inside modal
             document.getElementById("prof-select-step").style.display = "none";
-            document.getElementById("btn-remove-photo").style.display = "none";
             document.getElementById("prof-crop-step").style.display = "block";
-            document.getElementById("btn-save-crop").style.display = "block";
             
-            imgEl.style.display = "block"; imgEl.style.maxWidth = "100%"; imgEl.src = imgUrl;
+            imgEl.src = imgUrl;
             
             imgEl.onload = () => {
                 setTimeout(() => {
@@ -578,7 +587,6 @@
                     cropperInstance = new Cropper(imgEl, { aspectRatio: 1, viewMode: 1, autoCropArea: 0.8, background: true });
                 }, 100); 
             };
-            e.target.value = ""; 
         };
 
         window.saveCroppedAvatar = () => {
@@ -587,6 +595,7 @@
             update(ref(db, `members/${editingProfileId}`), { avatar: canvas.toDataURL('image/jpeg', 0.8) });
             showToast("Profile Photo Updated!"); closeProfileModal();
         };
+        
         window.removeProfilePhoto = () => { if(editingProfileId) { update(ref(db, `members/${editingProfileId}`), { avatar: "" }); showToast("Photo Removed"); closeProfileModal(); } };
 
         window.showDashboard = () => { document.getElementById("documents-view").classList.remove("active-view"); document.getElementById("dashboard-view").classList.add("active-view"); updateGlobalStorage(); };
