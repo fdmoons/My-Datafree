@@ -3,9 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Family Vault v2.0 Final</title>
+    <title>Family Vault v4.0 Ultimate</title>
+    
+    <!-- Fonts, Icons & Cropper.js -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
     <style>
         :root {
             --bg-main: #020617; --bg-grad-top: #0f172a; --text-primary: #f8fafc; --text-secondary: #94a3b8;
@@ -41,6 +46,10 @@
         h1, h2, h3 { font-weight: 700; margin-bottom: 1.5rem; text-align: center; }
         h2 { font-size: 1.8rem; background: linear-gradient(135deg, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
+        /* ADVANCED LOGIN UI */
+        .vault-logo { width: 90px; height: 90px; background: rgba(56, 189, 248, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto; border: 2px solid var(--accent-blue); box-shadow: 0 0 20px rgba(56, 189, 248, 0.3); animation: pulseLock 2s infinite; }
+        @keyframes pulseLock { 0% { box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); transform: scale(1); } 50% { box-shadow: 0 0 30px rgba(56, 189, 248, 0.6); transform: scale(1.05); } 100% { box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); transform: scale(1); } }
+        
         .input-group { position: relative; width: 100%; margin-bottom: 1rem; }
         .input-group i { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-size: 1.1rem; }
         input[type="text"], input[type="password"], input[type="number"] { width: 100%; padding: 16px 16px 16px 50px; background: var(--input-bg); border: 1px solid var(--panel-border); color: var(--text-primary); border-radius: 14px; outline: none; font-size: 1rem; transition: 0.3s ease; }
@@ -53,6 +62,10 @@
         .btn-outline:hover { background: rgba(255, 255, 255, 0.05); border-color: var(--accent-blue); color: var(--accent-blue); }
         .btn-danger { background: linear-gradient(135deg, #dc2626, #ef4444); box-shadow: 0 8px 20px -5px rgba(220, 38, 38, 0.4); color: white; border: none; }
         .btn-success { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 8px 20px -5px rgba(16, 185, 129, 0.4); color: white; border: none; }
+        
+        /* Fingerprint Login UI */
+        .btn-fingerprint { background: transparent; color: var(--accent-blue); border: 2px dashed var(--panel-border); box-shadow: none; margin-top: 10px; flex-direction: column; padding: 20px; transition: 0.3s; }
+        .btn-fingerprint:hover { background: rgba(56, 189, 248, 0.05); border-color: var(--accent-blue); transform: scale(1.02); }
 
         .file-upload-wrapper { position: relative; overflow: hidden; display: inline-block; width: 100%; max-width: 350px; margin: 15px 0; border-radius: 50px; }
         .file-upload-wrapper input[type="file"] { font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; height: 100%; width: 100%; }
@@ -67,15 +80,19 @@
         .documents-layout.grid-view { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
         .documents-layout.grid-view .card { flex-direction: column; text-align: center; height: 210px; justify-content: center; padding: 20px; }
         .documents-layout.grid-view .doc-info { margin-top: 10px; width: 100%; display: flex; flex-direction: column; align-items: center; }
+        
         .documents-layout.list-view { grid-template-columns: 1fr; }
         .documents-layout.list-view .card { flex-direction: row; text-align: left; height: auto; padding: 15px 20px; justify-content: flex-start; align-items: center; }
         .documents-layout.list-view .doc-preview { width: 55px; height: 55px; margin-bottom: 0; margin-right: 18px; flex-shrink: 0; }
         .documents-layout.list-view .doc-info { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; }
-        .documents-layout.list-view .card-actions { position: relative; top: 0; right: 0; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+        .documents-layout.list-view .card-actions { position: relative; top: 0; right: 0; display: flex; align-items: center; gap: 10px; flex-shrink: 0; opacity: 1;}
         .documents-layout.list-view .doc-title { white-space: nowrap; text-overflow: ellipsis; max-width: 100%; display: block; }
 
         .card { background: var(--card-bg); border: 1px solid var(--panel-border); border-radius: 20px; cursor: pointer; transition: 0.3s ease; display: flex; position: relative; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         .card:hover { background: var(--card-hover); transform: translateY(-4px); border-color: rgba(56, 189, 248, 0.4); box-shadow: 0 15px 30px -10px var(--shadow-color); }
+        .folder-card { height: 180px !important; justify-content: center !important; }
+        .folder-card:hover { border-color: #fbbf24; }
+
         .doc-preview { width: 70px; height: 70px; object-fit: cover; border-radius: 50%; margin-bottom: 12px; border: 2px solid var(--panel-border); background: #fff;}
         .member-card .doc-preview { width: 80px; height: 80px; }
         .doc-card .doc-preview { border-radius: 14px; }
@@ -84,7 +101,6 @@
 
         .card-actions { position: absolute; top: 12px; right: 12px; display: flex; gap: 8px; opacity: 0; transition: 0.3s; z-index: 2; }
         .card:hover .card-actions { opacity: 1; }
-        .documents-layout.list-view .card .card-actions { opacity: 1; position: relative; top: 0; right: 0; }
         
         .action-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; border: 1px solid transparent; backdrop-filter: blur(4px); flex-shrink: 0; }
         .action-del { background: rgba(220, 38, 38, 0.1); color: #ef4444; border-color: rgba(220, 38, 38, 0.2); }
@@ -101,7 +117,6 @@
         .storage-meter { background: var(--card-bg); border: 1px solid var(--panel-border); border-radius: 14px; padding: 15px; margin-bottom: 25px; }
         .meter-bar { width: 100%; height: 6px; background: var(--skeleton-base); border-radius: 10px; overflow: hidden; margin-top: 8px; }
         .meter-fill { height: 100%; background: linear-gradient(90deg, #10b981, #38bdf8); width: 0%; border-radius: 10px; transition: 0.5s ease; }
-        .storage-warning .meter-fill { background: linear-gradient(90deg, #f59e0b, #ef4444); }
         
         #pre-upload-box, .upload-status-box { background: var(--card-bg); border: 1px solid var(--accent-blue); border-radius: 16px; padding: 20px; margin: 15px 0; display: none; animation: slideUp 0.3s; }
         .upload-status-box { border-color: var(--panel-border); }
@@ -125,6 +140,8 @@
         .hist-title { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
         
         #confirm-modal .modal-content, #prompt-modal .modal-content, #profile-modal .modal-content { padding: 40px 30px; max-width: 420px; }
+        
+        .crop-wrapper { max-height: 300px; width: 100%; overflow: hidden; border-radius: 12px; margin-bottom: 15px; display: none; }
 
         #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; align-items: center; width: 90%; max-width: 400px; }
         .toast { background: var(--modal-bg); border-left: 4px solid var(--accent-blue); color: var(--text-primary); padding: 14px 20px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 12px; font-weight: 500; font-size: 14px; animation: slideDown 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; border: 1px solid var(--panel-border); pointer-events: auto; width: 100%; }
@@ -149,24 +166,40 @@
         <div class="icon-btn" onclick="toggleTheme()" id="theme-btn"><i class="fa-solid fa-moon"></i></div>
     </div>
     <div id="toast-container"></div>
-    <div style="position: fixed; bottom: 15px; right: 15px; color: var(--text-secondary); font-size: 12px; font-weight: 600; z-index: 5;">v2.0 Final</div>
+    <div style="position: fixed; bottom: 15px; right: 15px; color: var(--text-secondary); font-size: 12px; font-weight: 600; z-index: 5;">v4.0 Ultimate</div>
 
-    <!-- 1. Login View -->
-    <div id="login-view" class="glass-panel active-view" style="max-width: 420px; padding: 3rem 2.5rem;">
-        <h2><i class="fa-solid fa-shield-halved" style="color: var(--accent-blue);"></i> Vault Access</h2>
-        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 30px; font-size: 14px;">Secured with Auto-Lock & Firebase</p>
-        <div class="input-group">
-            <i class="fa-solid fa-key"></i>
-            <input type="password" id="access-key" placeholder="Enter Key or Phone Number">
+    <!-- 1. ADVANCED LOGIN VIEW -->
+    <div id="login-view" class="glass-panel active-view" style="max-width: 440px; padding: 3rem; border-top: 3px solid var(--accent-blue);">
+        
+        <!-- Glowing Vault Icon -->
+        <div class="vault-logo">
+            <i class="fa-solid fa-lock" style="font-size: 2.2rem; color: var(--accent-blue);"></i>
         </div>
-        <button class="btn" id="btn-login" onclick="checkAccess()">
-            <span>Unlock Vault</span> <i class="fa-solid fa-arrow-right-to-bracket"></i>
+        
+        <h2 style="font-size: 2rem; margin-bottom: 8px;">Family Vault</h2>
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 35px; font-size: 14px;">End-to-End Encrypted Storage</p>
+        
+        <div class="input-group" style="margin-bottom: 25px;">
+            <i class="fa-solid fa-key" style="color: var(--accent-blue);"></i>
+            <input type="password" id="access-key" placeholder="Enter Secure Key" style="text-align: center; font-size: 1.1rem; letter-spacing: 2px; padding: 18px; border-radius: 50px;">
+        </div>
+        
+        <button class="btn" id="btn-login" onclick="checkAccess()" style="border-radius: 50px; padding: 16px; font-size: 1.05rem; letter-spacing: 1px;">
+            <i class="fa-solid fa-shield-check"></i> <span>Authenticate</span>
         </button>
+        
+        <!-- Biometric / Fingerprint Section -->
+        <div id="fingerprint-section" style="display:none; margin-top: 30px; border-top: 1px solid var(--panel-border); padding-top: 25px;">
+            <p style="text-align: center; color: var(--text-secondary); font-size: 13px; margin-bottom: 15px;">Or unlock quickly with</p>
+            <button class="btn btn-fingerprint" onclick="loginWithFingerprint()" style="border-radius: 20px;">
+                <i class="fa-solid fa-fingerprint" style="font-size: 2.5rem; margin-bottom: 5px;"></i>
+                <span style="font-size: 0.95rem; font-weight: 600;">Biometric Unlock</span>
+            </button>
+        </div>
     </div>
 
     <!-- 2. Dashboard View -->
     <div id="dashboard-view" class="glass-panel">
-        
         <div class="storage-meter" id="storage-container">
             <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600;">
                 <span style="color: var(--text-secondary);"><i class="fa-solid fa-hard-drive"></i> Vault Storage (1GB Max)</span>
@@ -195,15 +228,15 @@
     <div id="documents-view" class="glass-panel">
         
         <div id="header-flex">
-            <button class="btn-outline" style="border-radius: 12px; padding: 10px 15px;" onclick="showDashboard()"><i class="fa-solid fa-arrow-left"></i> Back</button>
-            <h2 id="current-member-name"><i class="fa-solid fa-folder-open"></i> Docs</h2>
-            <div class="view-toggle">
+            <button class="btn-outline" style="border-radius: 12px; padding: 10px 15px;" onclick="handleDocBackBtn()"><i class="fa-solid fa-arrow-left"></i> Back</button>
+            <h2 id="current-member-name" style="margin-bottom: 0; flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><i class="fa-solid fa-folder-open"></i> Docs</h2>
+            <div class="view-toggle" id="view-toggle-div">
                 <button id="btn-grid" class="active" onclick="setView('grid')"><i class="fa-solid fa-grip"></i></button>
                 <button id="btn-list" onclick="setView('list')"><i class="fa-solid fa-list-ul"></i></button>
             </div>
         </div>
         
-        <div class="input-group" style="margin-bottom: 20px;">
+        <div class="input-group" id="search-div" style="margin-bottom: 20px;">
             <i class="fa-solid fa-magnifying-glass"></i>
             <input type="text" id="search-doc" placeholder="Search documents instantly..." oninput="searchDocs(this.value)" style="border-radius: 50px; padding-left: 45px;">
         </div>
@@ -240,7 +273,6 @@
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></span>
             
-            <!-- FIXED UI ALIGNMENT: Rename button moved next to the title text, padding added to prevent close button overlap -->
             <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; padding-right: 45px;">
                 <h3 id="modal-doc-title" style="margin: 0; word-break: break-all; text-align: left;">Title</h3>
                 <button class="action-icon action-edit" style="flex-shrink: 0; width: 32px; height: 32px;" onclick="renameCurrentDoc()" title="Rename File"><i class="fa-solid fa-pen"></i></button>
@@ -274,50 +306,51 @@
         </div>
     </div>
 
-    <!-- 5. Activity History Modal -->
-    <div class="modal" id="history-modal">
-        <div class="modal-content" style="max-width: 500px;">
-            <span class="close-btn" onclick="document.getElementById('history-modal').classList.remove('show')"><i class="fa-solid fa-xmark"></i></span>
-            <h3 style="text-align: left; margin-bottom: 20px;"><i class="fa-solid fa-clock-rotate-left" style="color: var(--accent-blue);"></i> Audit History <br><span style="font-size:12px; color:var(--text-secondary); font-weight:500;">(Auto-cleans logs older than 15 days)</span></h3>
-            <div id="history-list" style="max-height: 55vh; overflow-y: auto; padding-right: 10px;"></div>
-        </div>
-    </div>
-
-    <!-- 6. Profile Image Edit Modal -->
+    <!-- 5. Profile Image Edit Modal (FIXED CROPPER) -->
     <div class="modal" id="profile-modal" style="z-index: 2000;">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 450px;">
             <span class="close-btn" onclick="closeProfileModal()"><i class="fa-solid fa-xmark"></i></span>
-            <h3 style="margin-bottom: 20px;">Edit Profile Image</h3>
-            <div class="file-upload-wrapper" style="margin: 0 0 20px 0;">
-                <button class="btn"><i class="fa-solid fa-camera"></i> Choose Photo</button>
-                <input type="file" accept="image/*" onchange="uploadProfilePhoto(event)">
+            <h3 style="margin-bottom: 20px;">Profile Photo</h3>
+            
+            <div id="prof-select-step" style="text-align: center;">
+                <label class="btn" style="width: 100%; border-radius: 12px; padding: 16px; margin-bottom: 15px;">
+                    <i class="fa-solid fa-camera"></i> Select Photo to Crop
+                    <input type="file" accept="image/*" onchange="initCropProcess(event)" style="display:none;">
+                </label>
             </div>
-            <button class="btn btn-outline" style="width: 100%; color: #ef4444; border-color: rgba(239, 68, 68, 0.4);" onclick="removeProfilePhoto()"><i class="fa-solid fa-trash"></i> Remove Photo</button>
+            
+            <div id="prof-crop-step" class="crop-wrapper">
+                <img id="cropper-img" src="" style="max-width: 100%; display: block;">
+            </div>
+            <button class="btn btn-success" id="btn-save-crop" style="width: 100%; display:none; margin-bottom:15px;" onclick="saveCroppedAvatar()"><i class="fa-solid fa-crop-simple"></i> Crop & Save</button>
+
+            <button class="btn btn-outline" id="btn-remove-photo" style="width: 100%; color: #ef4444; border-color: rgba(239, 68, 68, 0.4);" onclick="removeProfilePhoto()"><i class="fa-solid fa-trash"></i> Remove Current Photo</button>
         </div>
     </div>
 
-    <!-- 7. Prompt Input Modal (For Rename) -->
+    <!-- Modals: Prompt & Confirm & History -->
     <div class="modal" id="prompt-modal" style="z-index: 2000;">
         <div class="modal-content">
             <h3 id="prompt-title" style="margin-bottom: 15px; text-align: left;">Rename</h3>
             <input type="text" id="prompt-input" class="no-icon" style="margin-bottom: 20px;">
-            <div class="flex-row">
-                <button class="btn btn-outline" style="flex: 1;" onclick="closePromptModal()">Cancel</button>
-                <button class="btn btn-success" style="flex: 1;" id="prompt-save-btn">Save</button>
-            </div>
+            <div class="flex-row"><button class="btn btn-outline" style="flex: 1;" onclick="closePromptModal()">Cancel</button><button class="btn btn-success" style="flex: 1;" id="prompt-save-btn">Save</button></div>
         </div>
     </div>
 
-    <!-- 8. Custom Confirm Modal -->
     <div class="modal" id="confirm-modal" style="z-index: 2000;">
         <div class="modal-content">
             <div style="font-size: 3.5rem; color: #ef4444; margin-bottom: 15px;"><i class="fa-solid fa-circle-exclamation"></i></div>
             <h3 id="confirm-title" style="margin-bottom: 12px; font-size: 1.4rem;">Are you sure?</h3>
             <p id="confirm-message" style="color: var(--text-secondary); font-size: 14px; margin-bottom: 30px;"></p>
-            <div class="flex-row">
-                <button class="btn btn-outline" style="flex: 1;" onclick="closeConfirmModal()">Cancel</button>
-                <button class="btn btn-danger" style="flex: 1;" id="confirm-yes-btn">Yes, Delete</button>
-            </div>
+            <div class="flex-row"><button class="btn btn-outline" style="flex: 1;" onclick="closeConfirmModal()">Cancel</button><button class="btn btn-danger" style="flex: 1;" id="confirm-yes-btn">Yes, Confirm</button></div>
+        </div>
+    </div>
+
+    <div class="modal" id="history-modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <span class="close-btn" onclick="document.getElementById('history-modal').classList.remove('show')"><i class="fa-solid fa-xmark"></i></span>
+            <h3 style="text-align: left; margin-bottom: 20px;"><i class="fa-solid fa-clock-rotate-left" style="color: var(--accent-blue);"></i> Audit History <br><span style="font-size:12px; color:var(--text-secondary); font-weight:500;">(Auto-cleans logs older than 15 days)</span></h3>
+            <div id="history-list" style="max-height: 55vh; overflow-y: auto; padding-right: 10px;"></div>
         </div>
     </div>
 
@@ -338,7 +371,13 @@
         let activeUserName = "Unknown"; 
         let currentMemberId = null, currentDocData = null, currentDocName = null, currentDocType = null, currentDocId = null, currentMemberName = null;
         let pendingFile = null, customConfirmCallback = null, promptCallback = null, editingProfileId = null;
-        let isUploading = false; 
+        let isUploading = false, cropperInstance = null; 
+        let activeFolderView = 'all'; 
+
+        // Check if Passkey (Fingerprint) was registered previously
+        if(localStorage.getItem('vault_passkey_registered') && window.PublicKeyCredential) {
+            document.getElementById('fingerprint-section').style.display = 'block';
+        }
 
         // Auto-Lock Feature
         let inactivityTime = () => {
@@ -391,7 +430,6 @@
         window.closePromptModal = () => { document.getElementById("prompt-modal").classList.remove("show"); promptCallback = null; };
         document.getElementById("prompt-save-btn").onclick = () => { if(promptCallback) promptCallback(document.getElementById("prompt-input").value.trim()); closePromptModal(); };
 
-        // Storage Tracker
         function updateGlobalStorage() {
             get(ref(db, 'vault_stats/totalStorage')).then((snap) => {
                 let total = snap.val() || 0; const limit = 1073741824; 
@@ -402,11 +440,10 @@
             });
         }
         function adjustStorage(bytesChange) {
-            get(ref(db, 'vault_stats/totalStorage')).then((snap) => {
-                let current = snap.val() || 0; set(ref(db, 'vault_stats/totalStorage'), Math.max(0, current + bytesChange));
-            });
+            get(ref(db, 'vault_stats/totalStorage')).then((snap) => { let current = snap.val() || 0; set(ref(db, 'vault_stats/totalStorage'), Math.max(0, current + bytesChange)); });
         }
 
+        // --- AUTH & FINGERPRINT LOGIC ---
         window.checkAccess = () => {
             const key = document.getElementById("access-key").value.trim(); if(key === "") return showToast("Please enter key", "warning");
             const btn = document.getElementById("btn-login"); btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking...';
@@ -415,24 +452,66 @@
                     activeUserName = snapshot.val();
                     document.getElementById("login-view").classList.remove("active-view"); document.getElementById("dashboard-view").classList.add("active-view");
                     showToast(`Welcome, ${activeUserName}!`); logActivity("Login", `Unlocked the vault.`); loadMembers(); updateGlobalStorage();
-                } else { showToast("Invalid Key", "error"); btn.innerHTML = '<span>Unlock Vault</span> <i class="fa-solid fa-arrow-right-to-bracket"></i>'; }
-            }).catch(() => { showToast("Database Error", "error"); btn.innerHTML = '<span>Unlock Vault</span> <i class="fa-solid fa-arrow-right-to-bracket"></i>'; });
+                    
+                    // Ask to setup Fingerprint if HTTPS/Vercel and not registered
+                    setTimeout(() => {
+                        if(window.PublicKeyCredential && window.location.protocol.startsWith('http') && !localStorage.getItem('vault_passkey_registered')) {
+                            openCustomConfirm("Enable Fingerprint?", "Do you want to use Fingerprint or Face ID for fast login next time?", () => {
+                                setupFingerprint(key);
+                            });
+                        }
+                    }, 1500);
+
+                } else { showToast("Invalid Key", "error"); btn.innerHTML = '<span><i class="fa-solid fa-shield-check"></i> Authenticate</span>'; }
+            }).catch(() => { showToast("Database Error", "error"); btn.innerHTML = '<span><i class="fa-solid fa-shield-check"></i> Authenticate</span>'; });
+        };
+
+        // WebAuthn Creation
+        async function setupFingerprint(dbKey) {
+            try {
+                const challenge = new Uint8Array(32); window.crypto.getRandomValues(challenge);
+                const userId = new Uint8Array(16); window.crypto.getRandomValues(userId);
+                
+                const publicKey = {
+                    challenge: challenge,
+                    rp: { name: "Family Vault", id: window.location.hostname },
+                    user: { id: userId, name: activeUserName, displayName: activeUserName },
+                    pubKeyCredParams: [{alg: -7, type: "public-key"}],
+                    authenticatorSelection: { authenticatorAttachment: "platform", userVerification: "required" },
+                    timeout: 60000
+                };
+                const credential = await navigator.credentials.create({ publicKey });
+                if(credential) {
+                    localStorage.setItem('vault_passkey_registered', 'true');
+                    localStorage.setItem('vault_saved_key', btoa(dbKey));
+                    document.getElementById('fingerprint-section').style.display = 'block';
+                    showToast("Fingerprint Setup Successful!");
+                }
+            } catch (err) { console.log(err); showToast("Fingerprint setup canceled or not supported.", "warning"); }
+        }
+
+        // WebAuthn Login
+        window.loginWithFingerprint = async () => {
+            try {
+                const challenge = new Uint8Array(32); window.crypto.getRandomValues(challenge);
+                const publicKey = { challenge: challenge, rpId: window.location.hostname, userVerification: "required", timeout: 60000 };
+                const assertion = await navigator.credentials.get({ publicKey });
+                if(assertion) {
+                    const savedKey = atob(localStorage.getItem('vault_saved_key'));
+                    document.getElementById("access-key").value = savedKey;
+                    checkAccess(); // Trigger auto login
+                }
+            } catch (err) { console.log(err); showToast("Fingerprint verification failed.", "error"); }
         };
 
         function logActivity(action, details) { push(ref(db, 'Vault_History'), { user: activeUserName, action: action, details: details, time: Date.now() }); }
         window.openHistory = () => {
             document.getElementById('history-modal').classList.add('show');
             const list = document.getElementById('history-list'); list.innerHTML = `<p style="text-align:center; color:var(--text-secondary); margin-top:20px;"><i class="fa-solid fa-spinner fa-spin"></i> Loading logs...</p>`;
-            
             get(query(ref(db, 'Vault_History'), limitToLast(100))).then((snapshot) => {
                 list.innerHTML = ""; if(!snapshot.exists()) { list.innerHTML = `<p style="text-align:center; margin-top:20px;">No activity yet.</p>`; return; }
-                const cutoff = Date.now() - (15 * 24 * 60 * 60 * 1000); 
-                let logs = []; 
-                snapshot.forEach(child => { 
-                    const log = child.val();
-                    if(log.time < cutoff) remove(ref(db, `Vault_History/${child.key}`)); 
-                    else logs.push(log); 
-                });
+                const cutoff = Date.now() - (15 * 24 * 60 * 60 * 1000); let logs = []; 
+                snapshot.forEach(child => { const log = child.val(); if(log.time < cutoff) remove(ref(db, `Vault_History/${child.key}`)); else logs.push(log); });
                 logs.reverse();
                 logs.forEach(log => {
                     let icon = "fa-clock"; if(log.action === "Login") icon = "fa-right-to-bracket"; if(log.action === "Upload") icon = "fa-cloud-arrow-up"; if(log.action === "Delete") icon = "fa-trash"; if(log.action === "Download") icon = "fa-download"; if(log.action === "Rename") icon = "fa-pen";
@@ -455,7 +534,7 @@
                     const avatarHtml = data.avatar ? `<img src="${data.avatar}" class="doc-preview" style="border-radius:50%;">` : `<i class="fa-solid fa-circle-user" style="font-size: 3.5rem; color: var(--accent-blue); margin-bottom: 15px;"></i>`;
                     card.innerHTML = `
                         <div class="card-actions" style="opacity: 1; top: 8px; right: 8px;">
-                            <div class="action-icon action-edit" onclick="event.stopPropagation(); openProfileModal('${id}')"><i class="fa-solid fa-gear" style="font-size:12px;"></i></div>
+                            <div class="action-icon action-edit" onclick="event.stopPropagation(); openProfileModal('${id}')"><i class="fa-solid fa-camera" style="font-size:12px;"></i></div>
                             <div class="action-icon action-del" onclick="event.stopPropagation(); deleteMember('${id}', '${data.name}')"><i class="fa-solid fa-trash" style="font-size:12px;"></i></div>
                         </div>
                         ${avatarHtml}
@@ -468,70 +547,129 @@
         }
         window.deleteMember = (id, name) => { openCustomConfirm("Delete Profile", `Delete ${name} and ALL documents?`, () => { remove(ref(db, `members/${id}`)); remove(ref(db, `documents/${id}`)); logActivity("Delete", `Deleted member: ${name}`); showToast(`Profile deleted`); }); };
 
-        window.openProfileModal = (id) => { editingProfileId = id; document.getElementById("profile-modal").classList.add("show"); };
-        window.closeProfileModal = () => { document.getElementById("profile-modal").classList.remove("show"); editingProfileId = null; };
-        window.uploadProfilePhoto = (e) => {
+        // --- FIXED: PROFILE CROPPER ---
+        window.openProfileModal = (id) => { 
+            editingProfileId = id; document.getElementById("profile-modal").classList.add("show"); 
+            document.getElementById("prof-crop-step").style.display = "none";
+            document.getElementById("btn-save-crop").style.display = "none";
+            document.getElementById("btn-remove-photo").style.display = "block";
+            document.getElementById("prof-select-step").style.display = "block";
+        };
+        window.closeProfileModal = () => { 
+            document.getElementById("profile-modal").classList.remove("show"); editingProfileId = null; 
+            if(cropperInstance) { cropperInstance.destroy(); cropperInstance = null; }
+        };
+        
+        window.initCropProcess = (e) => {
             const file = e.target.files[0]; if(!file || !editingProfileId) return;
-            const reader = new FileReader(); reader.readAsDataURL(file);
-            reader.onload = (evt) => {
-                const img = new Image(); img.src = evt.target.result;
-                img.onload = () => {
-                    const canvas = document.createElement('canvas'); canvas.width = 150; canvas.height = 150;
-                    canvas.getContext('2d').drawImage(img, 0, 0, 150, 150);
-                    update(ref(db, `members/${editingProfileId}`), { avatar: canvas.toDataURL('image/jpeg', 0.8) });
-                    showToast("Profile Photo Updated!"); closeProfileModal();
-                }
+            const imgUrl = URL.createObjectURL(file);
+            const imgEl = document.getElementById("cropper-img");
+            
+            document.getElementById("prof-select-step").style.display = "none";
+            document.getElementById("btn-remove-photo").style.display = "none";
+            document.getElementById("prof-crop-step").style.display = "block";
+            document.getElementById("btn-save-crop").style.display = "block";
+            
+            imgEl.style.display = "block"; imgEl.style.maxWidth = "100%"; imgEl.src = imgUrl;
+            
+            imgEl.onload = () => {
+                setTimeout(() => {
+                    if(cropperInstance) cropperInstance.destroy();
+                    cropperInstance = new Cropper(imgEl, { aspectRatio: 1, viewMode: 1, autoCropArea: 0.8, background: true });
+                }, 100); 
             };
+            e.target.value = ""; 
+        };
+
+        window.saveCroppedAvatar = () => {
+            if(!cropperInstance || !editingProfileId) return;
+            const canvas = cropperInstance.getCroppedCanvas({ width: 200, height: 200 });
+            update(ref(db, `members/${editingProfileId}`), { avatar: canvas.toDataURL('image/jpeg', 0.8) });
+            showToast("Profile Photo Updated!"); closeProfileModal();
         };
         window.removeProfilePhoto = () => { if(editingProfileId) { update(ref(db, `members/${editingProfileId}`), { avatar: "" }); showToast("Photo Removed"); closeProfileModal(); } };
 
         window.showDashboard = () => { document.getElementById("documents-view").classList.remove("active-view"); document.getElementById("dashboard-view").classList.add("active-view"); updateGlobalStorage(); };
 
         window.searchDocs = (val) => {
-            const term = val.toLowerCase(); const cards = document.querySelectorAll('#documents-list .card');
+            const term = val.toLowerCase(); const cards = document.querySelectorAll('#documents-list .doc-card');
             cards.forEach(c => { const title = c.querySelector('.doc-title').innerText.toLowerCase(); c.style.display = title.includes(term) ? "flex" : "none"; });
         };
 
+        window.handleDocBackBtn = () => { if (activeFolderView !== 'all') { openMemberDocs(currentMemberId, currentMemberName); } else { showDashboard(); } };
+
         window.openMemberDocs = (id, name) => {
-            currentMemberId = id; currentMemberName = name; document.getElementById("current-member-name").innerHTML = `<i class="fa-regular fa-folder-open"></i> ${name}`;
+            currentMemberId = id; currentMemberName = name; activeFolderView = 'all';
+            document.getElementById("current-member-name").innerHTML = `<i class="fa-regular fa-folder-open"></i> ${name}`;
             document.getElementById("dashboard-view").classList.remove("active-view"); document.getElementById("documents-view").classList.add("active-view");
             document.getElementById("pre-upload-box").style.display = "none"; document.getElementById("search-doc").value = "";
+            document.getElementById("search-div").style.display = "none"; document.getElementById("view-toggle-div").style.display = "none";
+            
             const list = document.getElementById("documents-list"); list.innerHTML = ""; const isList = currentView === 'list';
             for(let i=0; i<3; i++) {
                 if(isList) list.innerHTML += `<div class="card doc-card" style="flex-direction:row; height:auto; padding:15px 20px;"><div class="skeleton doc-preview" style="width:55px; height:55px; margin-right:18px;"></div><div style="flex:1;"><div class="skeleton" style="width:60%; height:12px; margin-bottom:10px;"></div><div class="skeleton" style="width:30%; height:10px;"></div></div></div>`;
                 else list.innerHTML += `<div class="card doc-card" style="height:210px; justify-content:center;"><div class="skeleton doc-preview" style="width:70px; height:70px; margin-bottom:15px;"></div><div class="skeleton" style="width:70%; height:12px; margin-bottom:10px;"></div><div class="skeleton" style="width:40%; height:10px;"></div></div>`;
             }
-            setTimeout(() => { loadDocuments(); }, 600);
+            setTimeout(() => { fetchAndRouteDocuments(); }, 600);
         };
 
-        function loadDocuments() {
+        window.openVirtualFolder = (folderType) => {
+            activeFolderView = folderType; let folderName = folderType === 'image' ? 'Images' : 'PDFs';
+            document.getElementById("current-member-name").innerHTML = `<i class="fa-regular fa-folder-open"></i> ${currentMemberName} <span style="color:var(--text-secondary); font-size:14px;">/ ${folderName}</span>`;
+            fetchAndRouteDocuments();
+        };
+
+        function fetchAndRouteDocuments() {
             onValue(ref(db, `documents/${currentMemberId}`), (snapshot) => {
                 const list = document.getElementById("documents-list"); list.innerHTML = "";
-                if (!snapshot.exists()) { list.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-secondary); padding: 30px;">No documents found.</p>`; return; }
+                if (!snapshot.exists()) { 
+                    list.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-secondary); padding: 30px;">No documents found.</p>`; 
+                    document.getElementById("search-div").style.display = "none"; document.getElementById("view-toggle-div").style.display = "none";
+                    return; 
+                }
                 
                 let docsArray = []; snapshot.forEach(child => { docsArray.push({ id: child.key, ...child.val() }); });
-                docsArray.sort((a,b) => (b.starred===true) - (a.starred===true));
+                let imgDocs = docsArray.filter(d => d.type.includes('image'));
+                let pdfDocs = docsArray.filter(d => d.type.includes('pdf'));
 
-                docsArray.forEach((doc) => {
-                    const card = document.createElement("div"); card.className = "card doc-card";
-                    const isImg = doc.type.includes('image'); const isPdf = doc.type.includes('pdf');
-                    let imgSrc = isImg ? doc.data : (isPdf ? 'https://cdn-icons-png.flaticon.com/512/337/337946.png' : 'https://cdn-icons-png.flaticon.com/512/2965/2965335.png');
-                    const starClass = doc.starred ? "active" : "";
-                    
-                    card.innerHTML = `
-                        <div class="card-actions">
-                            <div class="action-icon action-star ${starClass}" onclick="event.stopPropagation(); toggleStar('${doc.id}', ${!!doc.starred})"><i class="fa-solid fa-star" style="font-size:12px;"></i></div>
-                            <div class="action-icon action-del" onclick="event.stopPropagation(); deleteDocument('${doc.id}', '${doc.name}', ${doc.size})"><i class="fa-solid fa-trash" style="font-size:12px;"></i></div>
+                if (activeFolderView === 'all' && imgDocs.length > 0 && pdfDocs.length > 0) {
+                    document.getElementById("search-div").style.display = "none"; document.getElementById("view-toggle-div").style.display = "none";
+                    list.classList.remove('list-view'); list.classList.add('grid-view'); 
+                    list.innerHTML = `
+                        <div class="card folder-card" onclick="openVirtualFolder('image')">
+                            <i class="fa-solid fa-images" style="font-size: 3.5rem; color: #fbbf24; margin-bottom:15px;"></i>
+                            <h3 style="margin:0; font-size:16px;">Images</h3>
+                            <span class="doc-size">${imgDocs.length} Files</span>
                         </div>
-                        <img src="${imgSrc}" class="doc-preview">
-                        <div class="doc-info">
-                            <span class="doc-title">${doc.name}</span>
-                            <span class="doc-size">${formatBytes(doc.size)}</span>
+                        <div class="card folder-card" onclick="openVirtualFolder('pdf')">
+                            <i class="fa-solid fa-file-pdf" style="font-size: 3.5rem; color: #ef4444; margin-bottom:15px;"></i>
+                            <h3 style="margin:0; font-size:16px;">PDF Docs</h3>
+                            <span class="doc-size">${pdfDocs.length} Files</span>
                         </div>
                     `;
-                    card.onclick = () => openModal(doc.data, doc.name, doc.type, doc.id, doc.size);
-                    list.appendChild(card);
-                });
+                } else {
+                    document.getElementById("search-div").style.display = "block"; document.getElementById("view-toggle-div").style.display = "flex";
+                    setView(currentView); 
+                    let displayDocs = docsArray; if (activeFolderView === 'image') displayDocs = imgDocs; if (activeFolderView === 'pdf') displayDocs = pdfDocs;
+                    displayDocs.sort((a,b) => (b.starred===true) - (a.starred===true));
+
+                    displayDocs.forEach((doc) => {
+                        const card = document.createElement("div"); card.className = "card doc-card";
+                        const isImg = doc.type.includes('image'); const isPdf = doc.type.includes('pdf');
+                        let imgSrc = isImg ? doc.data : (isPdf ? 'https://cdn-icons-png.flaticon.com/512/337/337946.png' : 'https://cdn-icons-png.flaticon.com/512/2965/2965335.png');
+                        const starClass = doc.starred ? "active" : "";
+                        card.innerHTML = `
+                            <div class="card-actions">
+                                <div class="action-icon action-star ${starClass}" onclick="event.stopPropagation(); toggleStar('${doc.id}', ${!!doc.starred})"><i class="fa-solid fa-star" style="font-size:12px;"></i></div>
+                                <div class="action-icon action-del" onclick="event.stopPropagation(); deleteDocument('${doc.id}', '${doc.name}', ${doc.size})"><i class="fa-solid fa-trash" style="font-size:12px;"></i></div>
+                            </div>
+                            <img src="${imgSrc}" class="doc-preview">
+                            <div class="doc-info"><span class="doc-title">${doc.name}</span><span class="doc-size">${formatBytes(doc.size)}</span></div>
+                        `;
+                        card.onclick = () => openModal(doc.data, doc.name, doc.type, doc.id, doc.size);
+                        list.appendChild(card);
+                    });
+                }
             });
         }
 
@@ -548,8 +686,7 @@
         window.cancelUpload = () => { pendingFile = null; document.getElementById("pre-upload-box").style.display = "none"; document.getElementById("file-input").value = ""; };
 
         window.startUploadProcess = () => {
-            if(!pendingFile) return; const file = pendingFile;
-            isUploading = true; 
+            if(!pendingFile) return; const file = pendingFile; isUploading = true; 
             let customName = document.getElementById("upload-custom-name").value.trim() || "Document";
             const ext = file.name.split('.').pop(); const finalFileName = `${customName}.${ext}`;
             document.getElementById("pre-upload-box").style.display = "none";
@@ -580,14 +717,10 @@
             document.getElementById("progress-text").innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Syncing to Vault...';
             const finalSize = Math.round(base64Data.length * 0.75);
             push(ref(db, `documents/${currentMemberId}`), { name: fileName, data: base64Data, type: fileType, size: finalSize, starred: false }).then(() => {
-                isUploading = false;
-                setTimeout(() => { document.getElementById("upload-status").style.display = "none"; pendingFile = null; }, 1000);
+                isUploading = false; setTimeout(() => { document.getElementById("upload-status").style.display = "none"; pendingFile = null; }, 1000);
                 document.getElementById("file-input").value = ""; adjustStorage(finalSize);
                 logActivity("Upload", `Uploaded "${fileName}" to ${currentMemberName}`); showToast("Uploaded Successfully!");
-            }).catch(() => { 
-                isUploading = false;
-                document.getElementById("upload-status").style.display = "none"; showToast("Upload Failed! DB Limit error.", "error"); 
-            });
+            }).catch(() => { isUploading = false; document.getElementById("upload-status").style.display = "none"; showToast("Upload Failed! DB Limit error.", "error"); });
         }
 
         window.renameCurrentDoc = () => {
@@ -616,9 +749,7 @@
 
         window.deleteDocument = (docId, docName, docSize) => {
             openCustomConfirm("Delete Document", `Are you sure you want to permanently delete "${docName}"?`, () => {
-                remove(ref(db, `documents/${currentMemberId}/${docId}`)).then(() => { 
-                    logActivity("Delete", `Deleted "${docName}"`); adjustStorage(-docSize); showToast("Document Deleted"); closeModal(); 
-                });
+                remove(ref(db, `documents/${currentMemberId}/${docId}`)).then(() => { logActivity("Delete", `Deleted "${docName}"`); adjustStorage(-docSize); showToast("Document Deleted"); closeModal(); });
             });
         };
 
