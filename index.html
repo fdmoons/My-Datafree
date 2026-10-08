@@ -500,6 +500,7 @@
             }).catch(() => { showToast("Database Error", "error"); btn.innerHTML = '<span><i class="fa-solid fa-shield-check"></i> Authenticate</span>'; });
         };
 
+                // 1. SETUP FINGERPRINT (With Firebase Rule Error Checker)
         async function setupFingerprint(dbKey) {
             try {
                 const challenge = new Uint8Array(32); window.crypto.getRandomValues(challenge);
@@ -518,12 +519,17 @@
                 if(credential) {
                     set(ref(db, `Vault_Passkeys/${passkeyIdStr}`), btoa(dbKey)).then(() => {
                         localStorage.setItem('vault_passkey_registered', 'true');
+                        document.getElementById('fingerprint-section').style.display = 'block';
                         showToast("Fingerprint permanently saved to Database!");
+                    }).catch((error) => {
+                        console.error(error);
+                        showToast("Firebase Error! Please check Database Rules.", "error");
                     });
                 }
             } catch (err) { showToast("Fingerprint setup canceled.", "warning"); }
         }
 
+        // 2. LOGIN FINGERPRINT (With Auto-Reset for Old Caches)
         window.loginWithFingerprint = async () => {
             playSound('pop');
             try {
@@ -537,11 +543,17 @@
                         if (snapshot.exists()) {
                             const savedKey = atob(snapshot.val());
                             document.getElementById("access-key").value = savedKey; checkAccess(); 
-                        } else { showToast("Passkey data not found in Database.", "error"); }
+                        } else { 
+                            // Agar Database me nahi mila, to Cache Delete kar do!
+                            localStorage.removeItem('vault_passkey_registered');
+                            document.getElementById('fingerprint-section').style.display = 'none';
+                            showToast("Old Fingerprint Removed. Login with Password to setup again.", "warning"); 
+                        }
                     });
                 }
             } catch (err) { showToast("Fingerprint not matched or canceled.", "error"); }
         };
+
 
         function logActivity(action, details) { push(ref(db, 'Vault_History'), { user: activeUserName, action: action, details: details, time: Date.now() }); }
         window.openHistory = () => {
