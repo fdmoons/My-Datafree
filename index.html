@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Family Vault v8.0 Smart Bank</title>
+    <title>Family Vault v9.0 Pro</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -70,7 +70,7 @@
 
         .flex-row { display: flex; gap: 15px; align-items: center; justify-content: space-between; }
         
-        .main-tabs { display: flex; background: var(--input-bg); border: 1px solid var(--panel-border); border-radius: 14px; overflow: hidden; margin-bottom: 25px; padding: 5px; }
+        .main-tabs { display: flex; background: var(--input-bg); border: 1px solid var(--panel-border); border-radius: 14px; overflow: hidden; margin-bottom: 20px; padding: 5px; }
         .main-tabs button { flex: 1; background: transparent; border: none; color: var(--text-secondary); padding: 12px; cursor: pointer; transition: 0.3s; font-size: 1rem; font-weight: 600; border-radius: 10px; }
         .main-tabs button.active { background: var(--accent-blue); color: #fff; box-shadow: 0 4px 10px rgba(56,189,248,0.3); }
 
@@ -78,7 +78,11 @@
         .view-toggle button { background: transparent; border: none; color: var(--text-secondary); padding: 8px 16px; cursor: pointer; transition: 0.3s; font-size: 1.1rem; border-radius: 8px; }
         .view-toggle button.active { background: var(--accent-blue); color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
 
-        .documents-layout { display: grid; gap: 20px; transition: 0.3s ease; width: 100%; margin-top: 20px; }
+        /* Fetching Progress Terminal Styling */
+        #fetch-process-text { text-align: center; color: var(--accent-blue); font-size: 13px; font-weight: 600; margin-bottom: 15px; min-height: 20px; font-family: monospace; display: none; opacity: 0; animation: fadeIn 0.3s forwards; }
+        @keyframes fadeIn { to { opacity: 1; } }
+
+        .documents-layout { display: grid; gap: 20px; transition: 0.3s ease; width: 100%; margin-top: 10px; }
         .documents-layout.grid-view { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
         .documents-layout.grid-view .card { flex-direction: column; text-align: center; height: 210px; justify-content: center; padding: 20px; }
         .documents-layout.grid-view .doc-info { margin-top: 10px; width: 100%; display: flex; flex-direction: column; align-items: center; }
@@ -180,7 +184,7 @@
         <div class="icon-btn" onclick="toggleTheme()" id="theme-btn"><i class="fa-solid fa-moon"></i></div>
     </div>
     <div id="toast-container"></div>
-    <div style="position: fixed; bottom: 15px; right: 15px; color: var(--text-secondary); font-size: 12px; font-weight: 600; z-index: 5;">v8.0 Final</div>
+    <div style="position: fixed; bottom: 15px; right: 15px; color: var(--text-secondary); font-size: 12px; font-weight: 600; z-index: 5;">v9.0 Masterpiece</div>
 
     <!-- 1. LOGIN VIEW -->
     <div id="login-view" class="glass-panel active-view" style="max-width: 440px; padding: 3rem; border-top: 3px solid var(--accent-blue);">
@@ -252,6 +256,9 @@
             <button id="tab-bank" onclick="switchMainTab('bank')"><i class="fa-solid fa-building-columns"></i> Bank & Notes</button>
         </div>
         
+        <!-- Live Data Fetch Process Text -->
+        <div id="fetch-process-text"></div>
+        
         <!-- SECTION: DOCUMENTS -->
         <div id="section-docs">
             <div class="input-group" id="search-div" style="margin-bottom: 20px;">
@@ -297,18 +304,18 @@
         </div>
     </div>
 
-    <!-- ADD BANK MODAL -->
+    <!-- ADD/EDIT BANK MODAL -->
     <div class="modal" id="bank-modal" style="z-index: 2000;">
         <div class="modal-content">
             <span class="close-btn" onclick="closeAddBankModal()"><i class="fa-solid fa-xmark"></i></span>
-            <h3 style="margin-bottom: 20px; text-align: left;"><i class="fa-solid fa-lock" style="color:var(--accent-blue);"></i> Add Secure Note</h3>
+            <h3 id="bank-modal-title" style="margin-bottom: 20px; text-align: left;"><i class="fa-solid fa-lock" style="color:var(--accent-blue);"></i> Add Secure Note</h3>
             
             <div class="input-group"><input type="text" id="b-title" class="no-icon" placeholder="Title (e.g., SBI Account, PAN No)"></div>
             <div class="input-group"><input type="text" id="b-acc" class="no-icon" placeholder="Account Number / Main ID"></div>
             <div class="input-group"><input type="text" id="b-ifsc" class="no-icon" placeholder="IFSC Code / Branch"></div>
             <div class="input-group"><textarea id="b-notes" class="no-icon" placeholder="Extra Notes / UPI ID / Passwords..."></textarea></div>
             
-            <button class="btn btn-success" style="width: 100%;" onclick="saveBankDetails()"><i class="fa-solid fa-save"></i> Save Encrypted</button>
+            <button class="btn btn-success" style="width: 100%;" id="btn-save-bank" onclick="saveBankDetails()"><i class="fa-solid fa-save"></i> Save Encrypted</button>
         </div>
     </div>
 
@@ -442,7 +449,7 @@
         let activeUserName = "Unknown"; 
         let currentMemberId = null, currentDocData = null, currentDocName = null, currentDocType = null, currentDocId = null, currentMemberName = null;
         let pendingFile = null, customConfirmCallback = null, promptCallback = null, editingProfileId = null;
-        let isUploading = false, cropperInstance = null; 
+        let isUploading = false, cropperInstance = null, editingBankId = null; 
         let activeFolderView = 'all'; 
 
         // SOUND SYSTEM 🎵
@@ -488,9 +495,17 @@
             return { c: 'rgba(16, 185, 129, 0.1)', t: '<i class="fa-solid fa-building-columns" style="color:#10b981;"></i>', isIcon: true };
         }
 
-        if(window.PublicKeyCredential && window.location.protocol.startsWith('http')) {
-            document.getElementById('fingerprint-section').style.display = 'block';
+        // Live Process Status (Terminal style)
+        function simulateFetchProgress() {
+            const el = document.getElementById("fetch-process-text");
+            el.style.display = "block";
+            el.innerText = "[1/3] Establishing secure connection...";
+            setTimeout(() => { el.innerText = "[2/3] Retrieving encrypted packets..."; }, 300);
+            setTimeout(() => { el.innerText = "[3/3] Decrypting and parsing data..."; }, 600);
+            setTimeout(() => { el.style.display = "none"; }, 900);
         }
+
+        if(window.PublicKeyCredential && window.location.protocol.startsWith('http')) { document.getElementById('fingerprint-section').style.display = 'block'; }
 
         let inactivityTime = () => {
             let time; window.onload = resetTimer; document.onmousemove = resetTimer; document.onkeydown = resetTimer; document.ontouchstart = resetTimer;
@@ -600,8 +615,7 @@
                         if (snapshot.exists()) {
                             const savedKey = atob(snapshot.val()); document.getElementById("access-key").value = savedKey; checkAccess(); 
                         } else { 
-                            localStorage.removeItem('vault_passkey_registered');
-                            showToast("Old Fingerprint Removed. Login with Password to setup again.", "warning"); 
+                            localStorage.removeItem('vault_passkey_registered'); showToast("Old Fingerprint Removed. Login with Password to setup again.", "warning"); 
                         }
                     });
                 }
@@ -686,12 +700,29 @@
             playSound('pop');
             document.getElementById('tab-docs').classList.remove('active'); document.getElementById('tab-bank').classList.remove('active');
             document.getElementById('section-docs').style.display = 'none'; document.getElementById('section-bank').style.display = 'none';
+            
             if(tab === 'docs') {
                 document.getElementById('tab-docs').classList.add('active'); document.getElementById('section-docs').style.display = 'block';
                 if(activeFolderView === 'all') document.getElementById('view-toggle-div').style.display = 'flex';
+                // Trigger Skeletons and Fetch Process
+                simulateFetchProgress();
+                const list = document.getElementById("documents-list"); list.innerHTML = ""; const isList = currentView === 'list';
+                for(let i=0; i<3; i++) {
+                    if(isList) list.innerHTML += `<div class="card doc-card" style="flex-direction:row; height:auto; padding:15px 20px;"><div class="skeleton doc-preview" style="width:55px; height:55px; margin-right:18px;"></div><div style="flex:1;"><div class="skeleton" style="width:60%; height:12px; margin-bottom:10px;"></div><div class="skeleton" style="width:30%; height:10px;"></div></div></div>`;
+                    else list.innerHTML += `<div class="card doc-card" style="height:210px; justify-content:center;"><div class="skeleton doc-preview" style="width:70px; height:70px; margin-bottom:15px;"></div><div class="skeleton" style="width:70%; height:12px; margin-bottom:10px;"></div><div class="skeleton" style="width:40%; height:10px;"></div></div>`;
+                }
+                setTimeout(() => { fetchAndRouteDocuments(); }, 900);
             } else {
                 document.getElementById('tab-bank').classList.add('active'); document.getElementById('section-bank').style.display = 'block';
-                document.getElementById('view-toggle-div').style.display = 'none'; loadBankDetails();
+                document.getElementById('view-toggle-div').style.display = 'none'; 
+                
+                // Trigger Skeletons and Fetch Process
+                simulateFetchProgress();
+                const list = document.getElementById("bank-list"); list.innerHTML = "";
+                for(let i=0; i<2; i++) {
+                    list.innerHTML += `<div class="card bank-card" style="flex-direction:row; height:auto; padding:15px 20px;"><div class="skeleton bank-icon" style="width:50px; height:50px; margin-right:18px;"></div><div style="flex:1;"><div class="skeleton" style="width:60%; height:14px; margin-bottom:10px;"></div><div class="skeleton" style="width:40%; height:10px;"></div></div></div>`;
+                }
+                setTimeout(() => { loadBankDetails(); }, 900);
             }
         };
 
@@ -700,17 +731,14 @@
         window.handleDocBackBtn = () => { playSound('pop'); if (activeFolderView !== 'all') { openMemberDocs(currentMemberId, currentMemberName); } else { showDashboard(); } };
 
         window.openMemberDocs = (id, name) => {
-            currentMemberId = id; currentMemberName = name; activeFolderView = 'all'; switchMainTab('docs');
+            currentMemberId = id; currentMemberName = name; activeFolderView = 'all';
             document.getElementById("current-member-name").innerHTML = `<i class="fa-regular fa-folder-open"></i> ${name}`;
             document.getElementById("dashboard-view").classList.remove("active-view"); document.getElementById("documents-view").classList.add("active-view");
             document.getElementById("pre-upload-box").style.display = "none"; document.getElementById("search-doc").value = "";
             document.getElementById("search-div").style.display = "none"; document.getElementById("view-toggle-div").style.display = "none";
-            const list = document.getElementById("documents-list"); list.innerHTML = ""; const isList = currentView === 'list';
-            for(let i=0; i<3; i++) {
-                if(isList) list.innerHTML += `<div class="card doc-card" style="flex-direction:row; height:auto; padding:15px 20px;"><div class="skeleton doc-preview" style="width:55px; height:55px; margin-right:18px;"></div><div style="flex:1;"><div class="skeleton" style="width:60%; height:12px; margin-bottom:10px;"></div><div class="skeleton" style="width:30%; height:10px;"></div></div></div>`;
-                else list.innerHTML += `<div class="card doc-card" style="height:210px; justify-content:center;"><div class="skeleton doc-preview" style="width:70px; height:70px; margin-bottom:15px;"></div><div class="skeleton" style="width:70%; height:12px; margin-bottom:10px;"></div><div class="skeleton" style="width:40%; height:10px;"></div></div>`;
-            }
-            setTimeout(() => { fetchAndRouteDocuments(); }, 600);
+            
+            // Re-trigger main tab switch to docs which handles the fancy loading
+            switchMainTab('docs');
         };
 
         window.openVirtualFolder = (folderType) => { playSound('pop'); activeFolderView = folderType; let folderName = folderType === 'image' ? 'Images' : 'PDFs'; document.getElementById("current-member-name").innerHTML = `<i class="fa-regular fa-folder-open"></i> ${currentMemberName} <span style="color:var(--text-secondary); font-size:14px;">/ ${folderName}</span>`; fetchAndRouteDocuments(); };
@@ -825,9 +853,21 @@
                 const link = document.createElement("a"); link.download = fileName; link.href = dataUrl; link.click(); showToast("Resized & Downloaded"); }; img.src = currentDocData;
         };
 
-        // --- NEW: BANK VAULT LOGIC (With Dynamic Logos) ---
-        window.openAddBankModal = () => { playSound('pop'); document.getElementById('b-title').value = ''; document.getElementById('b-acc').value = ''; document.getElementById('b-ifsc').value = ''; document.getElementById('b-notes').value = ''; document.getElementById('bank-modal').classList.add('show'); };
-        window.closeAddBankModal = () => { playSound('pop'); document.getElementById('bank-modal').classList.remove('show'); };
+        // --- FIXED: BANK VAULT EDIT/ADD LOGIC ---
+        window.openAddBankModal = (id = null, title = '', encAcc = '', encIfsc = '', encNotes = '') => { 
+            playSound('pop'); 
+            editingBankId = id;
+            document.getElementById('b-title').value = title; 
+            document.getElementById('b-acc').value = encAcc ? decodeURIComponent(escape(atob(encAcc))) : ''; 
+            document.getElementById('b-ifsc').value = encIfsc ? decodeURIComponent(escape(atob(encIfsc))) : ''; 
+            document.getElementById('b-notes').value = encNotes ? decodeURIComponent(escape(atob(encNotes))) : ''; 
+            
+            document.getElementById('bank-modal-title').innerHTML = id ? '<i class="fa-solid fa-pen" style="color:var(--accent-blue);"></i> Edit Secure Note' : '<i class="fa-solid fa-lock" style="color:var(--accent-blue);"></i> Add Secure Note';
+            document.getElementById('btn-save-bank').innerHTML = id ? '<i class="fa-solid fa-save"></i> Update Encrypted' : '<i class="fa-solid fa-save"></i> Save Encrypted';
+            
+            document.getElementById('bank-modal').classList.add('show'); 
+        };
+        window.closeAddBankModal = () => { playSound('pop'); document.getElementById('bank-modal').classList.remove('show'); editingBankId = null; };
 
         window.saveBankDetails = () => {
             playSound('pop');
@@ -838,9 +878,15 @@
             const encIfsc = btoa(unescape(encodeURIComponent(ifsc)));
             const encNotes = btoa(unescape(encodeURIComponent(notes)));
 
-            push(ref(db, `bank_details/${currentMemberId}`), { title: title, acc: encAcc, ifsc: encIfsc, notes: encNotes, time: Date.now() }).then(() => {
-                playSound('success'); showToast("Secure Note Added!"); closeAddBankModal(); logActivity("Bank", `Added Secure Note: ${title}`);
-            });
+            if(editingBankId) {
+                update(ref(db, `bank_details/${currentMemberId}/${editingBankId}`), { title: title, acc: encAcc, ifsc: encIfsc, notes: encNotes }).then(() => {
+                    playSound('success'); showToast("Secure Note Updated!"); closeAddBankModal(); logActivity("Bank", `Updated Secure Note: ${title}`);
+                });
+            } else {
+                push(ref(db, `bank_details/${currentMemberId}`), { title: title, acc: encAcc, ifsc: encIfsc, notes: encNotes, time: Date.now() }).then(() => {
+                    playSound('success'); showToast("Secure Note Added!"); closeAddBankModal(); logActivity("Bank", `Added Secure Note: ${title}`);
+                });
+            }
         };
 
         function loadBankDetails() {
@@ -855,7 +901,10 @@
                     
                     const card = document.createElement("div"); card.className = "card bank-card";
                     card.innerHTML = `
-                        <div class="card-actions"><div class="action-icon action-del" onclick="event.stopPropagation(); deleteBank('${id}', '${data.title}')"><i class="fa-solid fa-trash" style="font-size:12px;"></i></div></div>
+                        <div class="card-actions">
+                            <div class="action-icon action-edit" onclick="event.stopPropagation(); openAddBankModal('${id}', '${data.title}', '${data.acc}', '${data.ifsc}', '${data.notes}')"><i class="fa-solid fa-pen" style="font-size:12px;"></i></div>
+                            <div class="action-icon action-del" onclick="event.stopPropagation(); deleteBank('${id}', '${data.title}')"><i class="fa-solid fa-trash" style="font-size:12px;"></i></div>
+                        </div>
                         <div class="bank-icon" style="background: ${bStyle.c}; border: none;">${iconHtml}</div>
                         <div class="doc-info" style="width:100%;">
                             <span class="doc-title" style="font-size: 16px;">${data.title}</span>
