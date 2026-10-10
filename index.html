@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Family Vault v9.0 Pro</title>
+    <title>Family Vault v10.0 Ultimate</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -61,6 +61,7 @@
         .btn-outline:hover { background: rgba(255, 255, 255, 0.05); border-color: var(--accent-blue); color: var(--accent-blue); }
         .btn-danger { background: linear-gradient(135deg, #dc2626, #ef4444); box-shadow: 0 8px 20px -5px rgba(220, 38, 38, 0.4); color: white; border: none; }
         .btn-success { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 8px 20px -5px rgba(16, 185, 129, 0.4); color: white; border: none; }
+        
         .btn-fingerprint { background: transparent; color: var(--accent-blue); border: 2px dashed var(--panel-border); box-shadow: none; margin-top: 10px; flex-direction: column; padding: 20px; transition: 0.3s; }
         .btn-fingerprint:hover { background: rgba(56, 189, 248, 0.05); border-color: var(--accent-blue); transform: scale(1.02); }
 
@@ -78,9 +79,8 @@
         .view-toggle button { background: transparent; border: none; color: var(--text-secondary); padding: 8px 16px; cursor: pointer; transition: 0.3s; font-size: 1.1rem; border-radius: 8px; }
         .view-toggle button.active { background: var(--accent-blue); color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
 
-        /* Fetching Progress Terminal Styling */
-        #fetch-process-text { text-align: center; color: var(--accent-blue); font-size: 13px; font-weight: 600; margin-bottom: 15px; min-height: 20px; font-family: monospace; display: none; opacity: 0; animation: fadeIn 0.3s forwards; }
-        @keyframes fadeIn { to { opacity: 1; } }
+        /* REAL-TIME FETCHING TERMINAL CSS */
+        #fetch-process-text { text-align: center; color: var(--accent-blue); font-size: 13px; font-weight: 600; margin-bottom: 15px; min-height: 20px; font-family: monospace; display: none; opacity: 0; transition: opacity 0.3s ease; }
 
         .documents-layout { display: grid; gap: 20px; transition: 0.3s ease; width: 100%; margin-top: 10px; }
         .documents-layout.grid-view { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
@@ -99,7 +99,6 @@
         .folder-card { height: 180px !important; justify-content: center !important; }
         .folder-card:hover { border-color: #fbbf24; }
         
-        /* Bank Card Specifics */
         .bank-card { text-align: left; padding: 20px; align-items: flex-start !important; justify-content: flex-start !important; height: auto !important; }
         .bank-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); }
 
@@ -184,7 +183,7 @@
         <div class="icon-btn" onclick="toggleTheme()" id="theme-btn"><i class="fa-solid fa-moon"></i></div>
     </div>
     <div id="toast-container"></div>
-    <div style="position: fixed; bottom: 15px; right: 15px; color: var(--text-secondary); font-size: 12px; font-weight: 600; z-index: 5;">v9.0 Masterpiece</div>
+    <div style="position: fixed; bottom: 15px; right: 15px; color: var(--text-secondary); font-size: 12px; font-weight: 600; z-index: 5;">v10.0 Sync Edition</div>
 
     <!-- 1. LOGIN VIEW -->
     <div id="login-view" class="glass-panel active-view" style="max-width: 440px; padding: 3rem; border-top: 3px solid var(--accent-blue);">
@@ -256,10 +255,9 @@
             <button id="tab-bank" onclick="switchMainTab('bank')"><i class="fa-solid fa-building-columns"></i> Bank & Notes</button>
         </div>
         
-        <!-- Live Data Fetch Process Text -->
+        <!-- REAL-TIME FETCH TEXT -->
         <div id="fetch-process-text"></div>
         
-        <!-- SECTION: DOCUMENTS -->
         <div id="section-docs">
             <div class="input-group" id="search-div" style="margin-bottom: 20px;">
                 <i class="fa-solid fa-magnifying-glass"></i>
@@ -293,7 +291,6 @@
             <div class="documents-layout grid-view" id="documents-list"></div>
         </div>
 
-        <!-- SECTION: BANK DETAILS -->
         <div id="section-bank" style="display: none;">
             <div style="text-align: center; margin-bottom: 20px;">
                 <button class="btn" style="width: 100%; max-width: 350px; border-radius: 50px; padding: 18px;" onclick="openAddBankModal()">
@@ -495,14 +492,15 @@
             return { c: 'rgba(16, 185, 129, 0.1)', t: '<i class="fa-solid fa-building-columns" style="color:#10b981;"></i>', isIcon: true };
         }
 
-        // Live Process Status (Terminal style)
-        function simulateFetchProgress() {
-            const el = document.getElementById("fetch-process-text");
-            el.style.display = "block";
-            el.innerText = "[1/3] Establishing secure connection...";
-            setTimeout(() => { el.innerText = "[2/3] Retrieving encrypted packets..."; }, 300);
-            setTimeout(() => { el.innerText = "[3/3] Decrypting and parsing data..."; }, 600);
-            setTimeout(() => { el.style.display = "none"; }, 900);
+        // REAL-TIME FETCH TEXT HANDLER
+        const fetchTextEl = document.getElementById("fetch-process-text");
+        function showFetchStatus(msg, keepOpen = true) {
+            fetchTextEl.style.display = "block";
+            fetchTextEl.style.opacity = "1";
+            fetchTextEl.innerText = msg;
+            if(!keepOpen) {
+                setTimeout(() => { fetchTextEl.style.opacity = "0"; setTimeout(() => fetchTextEl.style.display="none", 300); }, 800);
+            }
         }
 
         if(window.PublicKeyCredential && window.location.protocol.startsWith('http')) { document.getElementById('fingerprint-section').style.display = 'block'; }
@@ -696,33 +694,33 @@
 
         window.showDashboard = () => { playSound('pop'); document.getElementById("documents-view").classList.remove("active-view"); document.getElementById("dashboard-view").classList.add("active-view"); updateGlobalStorage(); };
 
+        // SWITCH TAB & REAL FETCH STATUS
         window.switchMainTab = (tab) => {
             playSound('pop');
             document.getElementById('tab-docs').classList.remove('active'); document.getElementById('tab-bank').classList.remove('active');
             document.getElementById('section-docs').style.display = 'none'; document.getElementById('section-bank').style.display = 'none';
             
+            showFetchStatus("[1/3] Requesting secure connection to Vault..."); // 1. Start fetching text
+            
             if(tab === 'docs') {
                 document.getElementById('tab-docs').classList.add('active'); document.getElementById('section-docs').style.display = 'block';
                 if(activeFolderView === 'all') document.getElementById('view-toggle-div').style.display = 'flex';
-                // Trigger Skeletons and Fetch Process
-                simulateFetchProgress();
+                
                 const list = document.getElementById("documents-list"); list.innerHTML = ""; const isList = currentView === 'list';
                 for(let i=0; i<3; i++) {
                     if(isList) list.innerHTML += `<div class="card doc-card" style="flex-direction:row; height:auto; padding:15px 20px;"><div class="skeleton doc-preview" style="width:55px; height:55px; margin-right:18px;"></div><div style="flex:1;"><div class="skeleton" style="width:60%; height:12px; margin-bottom:10px;"></div><div class="skeleton" style="width:30%; height:10px;"></div></div></div>`;
                     else list.innerHTML += `<div class="card doc-card" style="height:210px; justify-content:center;"><div class="skeleton doc-preview" style="width:70px; height:70px; margin-bottom:15px;"></div><div class="skeleton" style="width:70%; height:12px; margin-bottom:10px;"></div><div class="skeleton" style="width:40%; height:10px;"></div></div>`;
                 }
-                setTimeout(() => { fetchAndRouteDocuments(); }, 900);
+                fetchAndRouteDocuments(); // Calling firebase
             } else {
                 document.getElementById('tab-bank').classList.add('active'); document.getElementById('section-bank').style.display = 'block';
                 document.getElementById('view-toggle-div').style.display = 'none'; 
                 
-                // Trigger Skeletons and Fetch Process
-                simulateFetchProgress();
                 const list = document.getElementById("bank-list"); list.innerHTML = "";
                 for(let i=0; i<2; i++) {
                     list.innerHTML += `<div class="card bank-card" style="flex-direction:row; height:auto; padding:15px 20px;"><div class="skeleton bank-icon" style="width:50px; height:50px; margin-right:18px;"></div><div style="flex:1;"><div class="skeleton" style="width:60%; height:14px; margin-bottom:10px;"></div><div class="skeleton" style="width:40%; height:10px;"></div></div></div>`;
                 }
-                setTimeout(() => { loadBankDetails(); }, 900);
+                loadBankDetails(); // Calling firebase
             }
         };
 
@@ -731,24 +729,28 @@
         window.handleDocBackBtn = () => { playSound('pop'); if (activeFolderView !== 'all') { openMemberDocs(currentMemberId, currentMemberName); } else { showDashboard(); } };
 
         window.openMemberDocs = (id, name) => {
-            currentMemberId = id; currentMemberName = name; activeFolderView = 'all';
+            currentMemberId = id; currentMemberName = name; activeFolderView = 'all'; 
             document.getElementById("current-member-name").innerHTML = `<i class="fa-regular fa-folder-open"></i> ${name}`;
             document.getElementById("dashboard-view").classList.remove("active-view"); document.getElementById("documents-view").classList.add("active-view");
             document.getElementById("pre-upload-box").style.display = "none"; document.getElementById("search-doc").value = "";
             document.getElementById("search-div").style.display = "none"; document.getElementById("view-toggle-div").style.display = "none";
             
-            // Re-trigger main tab switch to docs which handles the fancy loading
             switchMainTab('docs');
         };
 
         window.openVirtualFolder = (folderType) => { playSound('pop'); activeFolderView = folderType; let folderName = folderType === 'image' ? 'Images' : 'PDFs'; document.getElementById("current-member-name").innerHTML = `<i class="fa-regular fa-folder-open"></i> ${currentMemberName} <span style="color:var(--text-secondary); font-size:14px;">/ ${folderName}</span>`; fetchAndRouteDocuments(); };
 
+        // FIREBASE DATA FETCH (Connected to Text UI)
         function fetchAndRouteDocuments() {
             onValue(ref(db, `documents/${currentMemberId}`), (snapshot) => {
+                showFetchStatus("[2/3] Data received! Decrypting and Rendering UI...", true); // 2. Real DB Response
+                
                 const list = document.getElementById("documents-list"); list.innerHTML = "";
                 if (!snapshot.exists()) { 
                     list.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-secondary); padding: 30px;">No documents found.</p>`; 
-                    document.getElementById("search-div").style.display = "none"; document.getElementById("view-toggle-div").style.display = "none"; return; 
+                    document.getElementById("search-div").style.display = "none"; document.getElementById("view-toggle-div").style.display = "none"; 
+                    showFetchStatus("[3/3] Vault unlocked successfully!", false); // 3. End
+                    return; 
                 }
                 
                 let docsArray = []; snapshot.forEach(child => { docsArray.push({ id: child.key, ...child.val() }); });
@@ -779,6 +781,7 @@
                         list.appendChild(card);
                     });
                 }
+                showFetchStatus("[3/3] Vault unlocked successfully!", false); // 3. End 
             });
         }
 
@@ -853,7 +856,6 @@
                 const link = document.createElement("a"); link.download = fileName; link.href = dataUrl; link.click(); showToast("Resized & Downloaded"); }; img.src = currentDocData;
         };
 
-        // --- FIXED: BANK VAULT EDIT/ADD LOGIC ---
         window.openAddBankModal = (id = null, title = '', encAcc = '', encIfsc = '', encNotes = '') => { 
             playSound('pop'); 
             editingBankId = id;
@@ -874,9 +876,7 @@
             const title = document.getElementById('b-title').value.trim(); const acc = document.getElementById('b-acc').value.trim(); const ifsc = document.getElementById('b-ifsc').value.trim(); const notes = document.getElementById('b-notes').value.trim();
             if(!title) return showToast("Title is required", "error");
             
-            const encAcc = btoa(unescape(encodeURIComponent(acc)));
-            const encIfsc = btoa(unescape(encodeURIComponent(ifsc)));
-            const encNotes = btoa(unescape(encodeURIComponent(notes)));
+            const encAcc = btoa(unescape(encodeURIComponent(acc))); const encIfsc = btoa(unescape(encodeURIComponent(ifsc))); const encNotes = btoa(unescape(encodeURIComponent(notes)));
 
             if(editingBankId) {
                 update(ref(db, `bank_details/${currentMemberId}/${editingBankId}`), { title: title, acc: encAcc, ifsc: encIfsc, notes: encNotes }).then(() => {
@@ -891,8 +891,13 @@
 
         function loadBankDetails() {
             onValue(ref(db, `bank_details/${currentMemberId}`), (snapshot) => {
+                showFetchStatus("[2/3] Bank details verified. Rendering UI...", true); // 2. Real DB Response
                 const list = document.getElementById("bank-list"); list.innerHTML = "";
-                if (!snapshot.exists()) { list.innerHTML = `<p style="text-align: center; color: var(--text-secondary); padding: 30px;">No secure notes found.</p>`; return; }
+                if (!snapshot.exists()) { 
+                    list.innerHTML = `<p style="text-align: center; color: var(--text-secondary); padding: 30px;">No secure notes found.</p>`; 
+                    showFetchStatus("[3/3] Vault unlocked successfully!", false); // 3. End
+                    return; 
+                }
                 
                 snapshot.forEach((child) => {
                     const data = child.val(); const id = child.key;
@@ -914,6 +919,7 @@
                     card.onclick = () => { playSound('pop'); viewBankDetails(data.title, data.acc, data.ifsc, data.notes, id); };
                     list.appendChild(card);
                 });
+                showFetchStatus("[3/3] Vault unlocked successfully!", false); // 3. End
             });
         }
 
