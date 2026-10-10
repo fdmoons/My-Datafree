@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Family Vault v14.0 Ultimate</title>
+    <title>Family Vault v15.0 Ultimate</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -49,15 +49,16 @@
         @keyframes pulseLock { 0% { box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); transform: scale(1); } 50% { box-shadow: 0 0 30px rgba(56, 189, 248, 0.6); transform: scale(1.05); } 100% { box-shadow: 0 0 15px rgba(56, 189, 248, 0.2); transform: scale(1); } }
         
         .input-group { position: relative; width: 100%; margin-bottom: 1rem; display: flex; align-items: center; }
-        .input-group i { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-size: 1.1rem; }
-        input[type="text"], input[type="password"], input[type="number"], textarea, select { width: 100%; padding: 16px 16px 16px 50px; background: var(--input-bg); border: 1px solid var(--panel-border); color: var(--text-primary); border-radius: 14px; outline: none; font-size: 1rem; transition: 0.3s ease; }
+        .input-group i { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-size: 1.1rem; z-index: 2; }
+        input[type="text"], input[type="password"], input[type="number"], textarea, select { width: 100%; padding: 16px 16px 16px 50px; background: var(--input-bg); border: 1px solid var(--panel-border); color: var(--text-primary); border-radius: 14px; outline: none; font-size: 1rem; transition: 0.3s ease; position: relative; z-index: 1; }
         select { padding-left: 16px; cursor: pointer; appearance: none; }
         textarea { padding-left: 16px; min-height: 100px; resize: vertical; }
         input:focus, textarea:focus, select:focus { border-color: var(--accent-blue); box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.15); }
-        input.no-icon { padding-left: 16px; }
+        input.no-icon, select.no-icon { padding-left: 16px; }
 
         .btn { background: linear-gradient(135deg, #2563eb, #0ea5e9); border: none; color: #fff; padding: 14px 24px; border-radius: 14px; cursor: pointer; font-weight: 600; font-size: 1rem; transition: 0.3s ease; display: inline-flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 8px 20px -5px rgba(37, 99, 235, 0.5); white-space: nowrap; width: 100%; }
         .btn:hover { transform: translateY(-2px); box-shadow: 0 12px 25px -5px rgba(37, 99, 235, 0.6); }
+        .btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none !important; }
         .btn-outline { background: transparent; border: 1px solid var(--panel-border); box-shadow: none; color: var(--text-primary); width: auto; padding: 12px 20px; transition: 0.3s; }
         .btn-outline:hover { background: rgba(255, 255, 255, 0.05); border-color: var(--accent-blue); color: var(--accent-blue); }
         .btn-danger { background: linear-gradient(135deg, #dc2626, #ef4444); box-shadow: 0 8px 20px -5px rgba(220, 38, 38, 0.4); color: white; border: none; }
@@ -79,7 +80,16 @@
         .view-toggle button { background: transparent; border: none; color: var(--text-secondary); padding: 8px 16px; cursor: pointer; transition: 0.3s; font-size: 1.1rem; border-radius: 8px; }
         .view-toggle button.active { background: var(--accent-blue); color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
 
-        #fetch-process-text { text-align: center; color: var(--accent-blue); font-size: 13px; font-weight: 600; margin-bottom: 15px; min-height: 20px; font-family: monospace; display: none; opacity: 0; transition: opacity 0.3s ease; }
+        /* FIXED: FLOATING PROCESS TEXT (No Layout Shift) */
+        #fetch-process-text { 
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); 
+            background: rgba(15, 23, 42, 0.95); border: 1px solid var(--accent-blue); 
+            color: var(--accent-blue); font-size: 13px; font-weight: 600; padding: 10px 20px; 
+            border-radius: 50px; font-family: monospace; display: none; opacity: 0; 
+            transition: opacity 0.3s ease; z-index: 9999; box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+            backdrop-filter: blur(10px);
+        }
+        body.light-mode #fetch-process-text { background: rgba(255, 255, 255, 0.95); box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
 
         .documents-layout { display: grid; gap: 20px; transition: 0.3s ease; width: 100%; margin-top: 10px; }
         .documents-layout.grid-view { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
@@ -188,6 +198,9 @@
     </div>
     <div id="toast-container"></div>
     
+    <!-- FLOATING REAL-TIME FETCH TEXT (No Layout Shift) -->
+    <div id="fetch-process-text"></div>
+
     <!-- Hidden video for Intruder Capture -->
     <video id="hidden-video" style="display:none;" autoplay playsinline></video>
     <canvas id="hidden-canvas" style="display:none;"></canvas>
@@ -280,8 +293,6 @@
             <button id="tab-bank" onclick="switchMainTab('bank')"><i class="fa-solid fa-building-columns"></i> Bank & Notes</button>
         </div>
         
-        <div id="fetch-process-text"></div>
-        
         <div id="section-docs">
             <div class="input-group" id="search-div" style="margin-bottom: 20px;">
                 <i class="fa-solid fa-magnifying-glass"></i>
@@ -359,10 +370,10 @@
                 <input type="text" id="download-name" class="no-icon" style="padding: 14px; border-radius: 12px; margin-bottom: 0;">
             </div>
 
-            <!-- FIXED: BOTH SHARE OPTIONS PRESENT -->
+            <!-- BOTH SHARE OPTIONS PRESENT -->
             <div class="modal-actions" style="display: flex; gap: 10px; justify-content: center; margin-bottom: 15px; flex-wrap: wrap;">
                 <button class="btn" style="flex: 1; min-width:120px;" id="btn-normal-download"><i class="fa-solid fa-download"></i> Save</button>
-                <button class="btn" style="flex: 1; min-width:120px; background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 8px 20px -5px rgba(16,185,129,0.4);" onclick="normalShareDocument()"><i class="fa-solid fa-share-nodes"></i> Share</button>
+                <button class="btn" style="flex: 1; min-width:120px; background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 8px 20px -5px rgba(16,185,129,0.4);" onclick="normalShareDocument()"><i class="fa-solid fa-share-nodes"></i> Share App</button>
             </div>
             <div class="modal-actions" style="display: flex; gap: 10px; justify-content: center; margin-bottom: 25px;">
                 <button class="btn" style="flex: 1; background: linear-gradient(135deg, #8b5cf6, #6366f1); box-shadow: 0 8px 20px -5px rgba(139,92,246,0.4);" onclick="openShareConfig()"><i class="fa-solid fa-link"></i> Secure Link</button>
@@ -390,7 +401,7 @@
             
             <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                 <input type="number" id="share-time-val" value="1" min="1" class="no-icon" style="flex: 1; margin-bottom:0; padding:14px; text-align:center;">
-                <select id="share-time-unit" style="flex: 2; margin-bottom:0; padding:14px; border-radius:12px;">
+                <select id="share-time-unit" style="flex: 2; margin-bottom:0; padding:14px; border-radius:12px;" class="no-icon">
                     <option value="minutes">Minutes</option>
                     <option value="hours" selected>Hours</option>
                     <option value="days">Days</option>
@@ -398,13 +409,12 @@
             </div>
             
             <div class="input-group" style="margin-bottom: 20px;">
-                <i class="fa-solid fa-key"></i>
+                <i class="fa-solid fa-key" style="z-index: 2;"></i>
                 <input type="password" id="share-password" placeholder="Set Password (Optional)">
             </div>
-            <button class="btn btn-success" style="width: 100%;" onclick="generateFinalLink()"><i class="fa-solid fa-magic"></i> Generate Link</button>
+            <button class="btn btn-success" style="width: 100%;" id="btn-generate-link" onclick="generateFinalLink()"><i class="fa-solid fa-magic"></i> Generate Link</button>
         </div>
 
-        <!-- NEW: GENERATED LINK UI (STEP 2) -->
         <div class="modal-content" id="share-step-2" style="display: none;">
             <span class="close-btn" onclick="document.getElementById('share-config-modal').classList.remove('show')"><i class="fa-solid fa-xmark"></i></span>
             <div style="font-size: 3rem; color: #10b981; margin-bottom: 15px;"><i class="fa-solid fa-check-circle"></i></div>
@@ -452,7 +462,7 @@
     <div class="modal" id="history-modal">
         <div class="modal-content" style="max-width: 500px;">
             <span class="close-btn" onclick="document.getElementById('history-modal').classList.remove('show')"><i class="fa-solid fa-xmark"></i></span>
-            <h3 style="text-align: left; margin-bottom: 20px;"><i class="fa-solid fa-clock-rotate-left" style="color: var(--accent-blue);"></i> Audit History <br><span style="font-size:12px; color:var(--text-secondary); font-weight:500;">(Auto-cleans logs older than 15 days)</span></h3>
+            <h3 style="text-align: left; margin-bottom: 20px;"><i class="fa-solid fa-clock-rotate-left" style="color: var(--accent-blue);"></i> Audit History <br><span style="font-size:12px; color:var(--text-secondary); font-weight:500;">(Intruder selfies shown here)</span></h3>
             <div id="history-list" style="max-height: 55vh; overflow-y: auto; padding-right: 10px;"></div>
         </div>
     </div>
@@ -564,6 +574,7 @@
 
                         document.getElementById('share-msg').innerHTML = `File ready securely: <br><b style="color:var(--text-primary); font-size:1.1rem;">${data.name}</b><br><span style="font-size:12px; color:var(--text-secondary); display:block; margin-top:5px;">Expires in ${remStr}</span>`;
                         
+                        // IF Password Protected
                         if(data.pass) {
                             const authSec = document.getElementById('share-auth-section'); authSec.style.display = "block";
                             document.getElementById('btn-unlock-shared').onclick = () => {
@@ -794,52 +805,65 @@
         // --- NORMAL SHARE ---
         window.normalShareDocument = async () => { playSound('pop'); if (!navigator.share) return showToast("Sharing not supported.", "error"); try { showToast("Preparing...", "warning"); const res = await fetch(currentDocData); const blob = await res.blob(); const fileName = document.getElementById("download-name").value.trim() || currentDocName; await navigator.share({ title: fileName, files: [new File([blob], fileName, { type: currentDocType })] }); showToast("Shared!"); } catch (err) { } };
 
-        // --- NEW: SECURE LINK CONFIG & GENERATION ---
+        // --- SECURE LINK CONFIG & GENERATION (FIXED LOADING STATE) ---
         window.openShareConfig = () => { 
             playSound('pop'); 
             document.getElementById('share-step-1').style.display = "block";
             document.getElementById('share-step-2').style.display = "none";
             document.getElementById('share-password').value = ''; 
             document.getElementById('share-time-val').value = '1';
-            document.getElementById('share-time-unit').value = 'hours';
             
             document.getElementById('doc-modal').classList.remove('show');
             document.getElementById('share-config-modal').classList.add('show'); 
         };
 
         window.generateFinalLink = async () => { 
-            playSound('success'); 
-            const pass = document.getElementById('share-password').value.trim();
-            const timeVal = parseInt(document.getElementById('share-time-val').value) || 1;
-            const timeUnit = document.getElementById('share-time-unit').value;
+            playSound('pop'); 
             
-            let multiplier = 60 * 1000; // minutes
-            if(timeUnit === 'hours') multiplier = 60 * 60 * 1000;
-            if(timeUnit === 'days') multiplier = 24 * 60 * 60 * 1000;
-            
-            const expiry = Date.now() + (timeVal * multiplier); 
-            const token = "vlt_" + Math.random().toString(36).substr(2, 9);
-            
-            let linkData = { data: currentDocData, name: currentDocName, type: currentDocType, expiry: expiry };
-            if(pass) linkData.pass = btoa(pass);
+            const btn = document.getElementById('btn-generate-link');
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating...';
+            btn.disabled = true;
 
-            document.getElementById('share-step-1').style.display = "none";
-            document.getElementById('share-step-2').style.display = "block";
+            try {
+                const pass = document.getElementById('share-password').value.trim();
+                const timeVal = parseInt(document.getElementById('share-time-val').value) || 1;
+                const timeUnit = document.getElementById('share-time-unit').value;
+                
+                let multiplier = 60 * 1000; 
+                if(timeUnit === 'hours') multiplier = 60 * 60 * 1000;
+                if(timeUnit === 'days') multiplier = 24 * 60 * 60 * 1000;
+                
+                const expiry = Date.now() + (timeVal * multiplier); 
+                const token = "vlt_" + Math.random().toString(36).substr(2, 9);
+                
+                let linkData = { data: currentDocData, name: currentDocName, type: currentDocType, expiry: expiry };
+                if(pass) linkData.pass = btoa(pass);
 
-            await set(ref(db, `Shared_Links/${token}`), linkData);
-            const shareUrl = window.location.origin + window.location.pathname + "?share=" + token; 
-            
-            document.getElementById('final-generated-link').value = shareUrl;
-            logActivity("Share", `Generated Secure Link for "${currentDocName}" (${timeVal} ${timeUnit})`);
+                // Wait for Firebase to save
+                await set(ref(db, `Shared_Links/${token}`), linkData);
+                
+                const shareUrl = window.location.origin + window.location.pathname + "?share=" + token; 
+                document.getElementById('final-generated-link').value = shareUrl;
+                
+                document.getElementById('share-step-1').style.display = "none";
+                document.getElementById('share-step-2').style.display = "block";
+                
+                logActivity("Share", `Generated Secure Link for "${currentDocName}" (${timeVal} ${timeUnit})`);
+                playSound('success');
+            } catch(e) {
+                showToast("Error generating link", "error");
+            } finally {
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            }
         };
 
         window.copyGeneratedLink = () => {
             playSound('pop');
             const linkInput = document.getElementById('final-generated-link');
-            linkInput.select();
-            linkInput.setSelectionRange(0, 99999);
-            navigator.clipboard.writeText(linkInput.value);
-            showToast("Secure Link Copied!");
+            linkInput.select(); linkInput.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(linkInput.value); showToast("Secure Link Copied!");
         };
 
         window.customResizeDownload = () => { playSound('success'); const w = parseInt(document.getElementById("resize-w").value); const h = parseInt(document.getElementById("resize-h").value); const targetKB = parseInt(document.getElementById("resize-kb").value); const fileName = document.getElementById("download-name").value.trim() || currentDocName; if(!w && !h && !targetKB) return showToast("Enter Width, Height or Max Size", "error"); showToast("Processing Image...", "warning"); const img = new Image(); img.onload = () => { const canvas = document.createElement("canvas"); let newW = w || img.width; let newH = h || img.height; if(w && !h) newH = img.height * (w / img.width); if(h && !w) newW = img.width * (h / img.height); canvas.width = newW; canvas.height = newH; canvas.getContext("2d").drawImage(img, 0, 0, newW, newH); let quality = 0.95; let dataUrl = canvas.toDataURL("image/jpeg", quality); if (targetKB) { let sizeKB = Math.round((dataUrl.length * 0.75) / 1024); while (sizeKB > targetKB && quality > 0.1) { quality -= 0.1; dataUrl = canvas.toDataURL("image/jpeg", quality); sizeKB = Math.round((dataUrl.length * 0.75) / 1024); } } const link = document.createElement("a"); link.download = fileName; link.href = dataUrl; link.click(); showToast("Resized & Downloaded"); }; img.src = currentDocData; };
